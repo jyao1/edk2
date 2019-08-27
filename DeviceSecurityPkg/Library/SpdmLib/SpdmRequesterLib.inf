@@ -1,0 +1,58 @@
+## @file
+#  SPDM library.
+#
+#  Copyright (c) 2020, Intel Corporation. All rights reserved.<BR>
+#
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = SpdmRequesterLib
+  FILE_GUID                      = 8B6024A3-270A-410F-91AB-9E99F05C2A58
+  MODULE_TYPE                    = BASE
+  VERSION_STRING                 = 1.0
+  LIBRARY_CLASS                  = SpdmRequesterLib
+
+#
+# The following information is for reference only and not required by the build tools.
+#
+#  VALID_ARCHITECTURES           = IA32 X64 AARCH64
+#
+
+[Sources]
+  openspdm/Library/SpdmCommonLib/SpdmCommonLibInternal.h
+  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibChallenge.c
+  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibCommunication.c
+  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibEncapCertificate.c
+  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibEncapChallengeAuth.c
+  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibEncapDigest.c
+  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibEncapError.c
+  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibEncapKeyUpdate.c
+  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibEncapRequest.c
+  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibEndSession.c
+  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibFinish.c
+  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibGetCapability.c
+  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibGetCertificate.c
+  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibGetDigest.c
+  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibGetMeasurement.c
+  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibGetVersion.c
+  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibHandleErrorResponse.c
+  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibHeartbeat.c
+  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibInternal.h
+  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibKeyExchange.c
+  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibKeyUpdate.c
+  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibNegotiateAlgorithm.c
+  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibPskExchange.c
+  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibPskFinish.c
+  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibSendReceive.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  DeviceSecurityPkg/DeviceSecurityPkg.dec
+  CryptoPkg/CryptoPkg.dec
+
+[LibraryClasses]
+  SpdmCommonLib
+  SpdmSecuredMessageLib

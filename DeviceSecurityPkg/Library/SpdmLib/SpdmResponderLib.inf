@@ -1,0 +1,59 @@
+## @file
+#  SPDM library.
+#
+#  Copyright (c) 2020, Intel Corporation. All rights reserved.<BR>
+#
+#  SPDX-License-Identifier: BSD-2-Clause-Patent
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = SpdmResponderLib
+  FILE_GUID                      = 9005B3A3-45F1-4DE9-93FF-2512D4B9CCFA
+  MODULE_TYPE                    = BASE
+  VERSION_STRING                 = 1.0
+  LIBRARY_CLASS                  = SpdmResponderLib
+
+#
+# The following information is for reference only and not required by the build tools.
+#
+#  VALID_ARCHITECTURES           = IA32 X64 AARCH64
+#
+
+[Sources]
+  openspdm/Library/SpdmCommonLib/SpdmCommonLibInternal.h
+  openspdm/Library/SpdmResponderLib/SpdmResponderLibAlgorithm.c
+  openspdm/Library/SpdmResponderLib/SpdmResponderLibCapability.c
+  openspdm/Library/SpdmResponderLib/SpdmResponderLibCertificate.c
+  openspdm/Library/SpdmResponderLib/SpdmResponderLibChallengeAuth.c
+  openspdm/Library/SpdmResponderLib/SpdmResponderLibCommunication.c
+  openspdm/Library/SpdmResponderLib/SpdmResponderLibDigest.c
+  openspdm/Library/SpdmResponderLib/SpdmResponderLibEncapChallenge.c
+  openspdm/Library/SpdmResponderLib/SpdmResponderLibEncapGetCertificate.c
+  openspdm/Library/SpdmResponderLib/SpdmResponderLibEncapGetDigest.c
+  openspdm/Library/SpdmResponderLib/SpdmResponderLibEncapKeyUpdate.c
+  openspdm/Library/SpdmResponderLib/SpdmResponderLibEncapResponse.c
+  openspdm/Library/SpdmResponderLib/SpdmResponderLibEndSession.c
+  openspdm/Library/SpdmResponderLib/SpdmResponderLibError.c
+  openspdm/Library/SpdmResponderLib/SpdmResponderLibFinish.c
+  openspdm/Library/SpdmResponderLib/SpdmResponderLibHandleResponseState.c
+  openspdm/Library/SpdmResponderLib/SpdmResponderLibHeartbeat.c
+  openspdm/Library/SpdmResponderLib/SpdmResponderLibInternal.h
+  openspdm/Library/SpdmResponderLib/SpdmResponderLibKeyExchange.c
+  openspdm/Library/SpdmResponderLib/SpdmResponderLibKeyUpdate.c
+  openspdm/Library/SpdmResponderLib/SpdmResponderLibMeasurement.c
+  openspdm/Library/SpdmResponderLib/SpdmResponderLibPskExchange.c
+  openspdm/Library/SpdmResponderLib/SpdmResponderLibPskFinish.c
+  openspdm/Library/SpdmResponderLib/SpdmResponderLibReceiveSend.c
+  openspdm/Library/SpdmResponderLib/SpdmResponderLibRespondIfReady.c
+  openspdm/Library/SpdmResponderLib/SpdmResponderLibVersion.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  DeviceSecurityPkg/DeviceSecurityPkg.dec
+  CryptoPkg/CryptoPkg.dec
+
+[LibraryClasses]
+  SpdmCommonLib
+  SpdmSecuredMessageLib
