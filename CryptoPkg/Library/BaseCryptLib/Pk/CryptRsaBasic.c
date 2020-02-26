@@ -7,6 +7,8 @@
   3) RsaSetKey
   4) RsaPkcs1Verify
 
+  RFC 8017 - PKCS #1: RSA Cryptography Specifications Version 2.2
+
 Copyright (c) 2009 - 2020, Intel Corporation. All rights reserved.<BR>
 SPDX-License-Identifier: BSD-2-Clause-Patent
 
@@ -17,6 +19,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include <openssl/bn.h>
 #include <openssl/rsa.h>
 #include <openssl/objects.h>
+#include <openssl/evp.h>
 
 /**
   Allocates and initializes one RSA context for subsequent use.
@@ -324,4 +327,99 @@ RsaPkcs1Verify (
                      (UINT32) SigSize,
                      (RSA *) RsaContext
                      );
+}
+
+/**
+  Verifies the RSA-SSA signature with EMSA-PSS encoding scheme defined in
+  RSA PKCS#1 v2.2.
+
+  The salt length is same as digest length.
+
+  If RsaContext is NULL, then return FALSE.
+  If MessageHash is NULL, then return FALSE.
+  If Signature is NULL, then return FALSE.
+  If HashSize is not equal to the size of SHA-1, SHA-256, SHA-384 or SHA-512 digest, then return FALSE.
+
+  @param[in]  RsaContext   Pointer to RSA context for signature verification.
+  @param[in]  MessageHash  Pointer to octet message hash to be checked.
+  @param[in]  HashSize     Size of the message hash in bytes.
+  @param[in]  Signature    Pointer to RSA-SSA PSS signature to be verified.
+  @param[in]  SigSize      Size of signature in bytes.
+
+  @retval  TRUE   Valid signature encoded in RSA-SSA PSS.
+  @retval  FALSE  Invalid signature or invalid RSA context.
+
+**/
+BOOLEAN
+EFIAPI
+RsaPssVerify (
+  IN  VOID         *RsaContext,
+  IN  CONST UINT8  *MessageHash,
+  IN  UINTN        HashSize,
+  IN  CONST UINT8  *Signature,
+  IN  UINTN        SigSize
+  )
+{
+  RSA           *Rsa;
+  BOOLEAN       Result;
+  INT32         Size;
+  CONST EVP_MD  *HashAlg;
+  VOID          *Buffer;
+
+  if (RsaContext == NULL || MessageHash == NULL || Signature == NULL) {
+    return FALSE;
+  }
+
+  if (SigSize > INT_MAX || SigSize == 0) {
+    return FALSE;
+  }
+
+  Rsa = RsaContext;
+  Size = RSA_size (Rsa);
+  if (SigSize != (UINTN)Size) {
+    return FALSE;
+  }
+
+  switch (HashSize) {
+  case SHA256_DIGEST_SIZE:
+    HashAlg = EVP_sha256();
+    break;
+  case SHA384_DIGEST_SIZE:
+    HashAlg = EVP_sha384();
+    break;
+  case SHA512_DIGEST_SIZE:
+    HashAlg = EVP_sha512();
+    break;
+  default:
+    return FALSE;
+  }
+
+  Buffer = AllocatePool (Size);
+  if (Buffer == NULL) {
+    return FALSE;
+  }
+
+  Size = RSA_public_decrypt (
+             Size,
+             Signature,
+             Buffer,
+             Rsa,
+             RSA_NO_PADDING
+             );
+  if (Size <= 0) {
+    FreePool (Buffer);
+    return FALSE;
+  }
+  ASSERT (SigSize == (UINTN)Size);
+
+  Result = (BOOLEAN) RSA_verify_PKCS1_PSS (
+             Rsa,
+             MessageHash,
+             HashAlg,
+             Buffer,
+             RSA_PSS_SALTLEN_DIGEST
+             );
+  FreePool (Buffer);
+
+  return Result;
 }

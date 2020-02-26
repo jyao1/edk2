@@ -40,9 +40,6 @@ extern "C" {
 #ifndef OPENSSL_NO_CAST
 # define OPENSSL_NO_CAST
 #endif
-#ifndef OPENSSL_NO_CHACHA
-# define OPENSSL_NO_CHACHA
-#endif
 #ifndef OPENSSL_NO_CMS
 # define OPENSSL_NO_CMS
 #endif
@@ -55,9 +52,6 @@ extern "C" {
 #ifndef OPENSSL_NO_DSA
 # define OPENSSL_NO_DSA
 #endif
-#ifndef OPENSSL_NO_EC
-# define OPENSSL_NO_EC
-#endif
 #ifndef OPENSSL_NO_IDEA
 # define OPENSSL_NO_IDEA
 #endif
@@ -69,9 +63,6 @@ extern "C" {
 #endif
 #ifndef OPENSSL_NO_MDC2
 # define OPENSSL_NO_MDC2
-#endif
-#ifndef OPENSSL_NO_POLY1305
-# define OPENSSL_NO_POLY1305
 #endif
 #ifndef OPENSSL_NO_RC2
 # define OPENSSL_NO_RC2
@@ -156,12 +147,6 @@ extern "C" {
 #endif
 #ifndef OPENSSL_NO_EC_NISTP_64_GCC_128
 # define OPENSSL_NO_EC_NISTP_64_GCC_128
-#endif
-#ifndef OPENSSL_NO_ECDH
-# define OPENSSL_NO_ECDH
-#endif
-#ifndef OPENSSL_NO_ECDSA
-# define OPENSSL_NO_ECDSA
 #endif
 #ifndef OPENSSL_NO_EGD
 # define OPENSSL_NO_EGD

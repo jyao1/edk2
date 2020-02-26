@@ -1,6 +1,8 @@
 /** @file
   Diffie-Hellman Wrapper Implementation over OpenSSL.
 
+  RFC 7919 - Negotiated Finite Field Diffie-Hellman Ephemeral (FFDHE) Parameters
+
 Copyright (c) 2010 - 2018, Intel Corporation. All rights reserved.<BR>
 SPDX-License-Identifier: BSD-2-Clause-Patent
 
@@ -9,6 +11,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include "InternalCryptLib.h"
 #include <openssl/bn.h>
 #include <openssl/dh.h>
+#include <openssl/objects.h>
 
 /**
   Allocates and Initializes one Diffie-Hellman Context for subsequent use.
@@ -27,6 +30,34 @@ DhNew (
   // Allocates & Initializes DH Context by OpenSSL DH_new()
   //
   return (VOID *) DH_new ();
+}
+
+/**
+  Allocates and Initializes one Diffie-Hellman Context for subsequent use
+  with the NID.
+
+  @param Nid cipher NID
+
+  @return  Pointer to the Diffie-Hellman Context that has been initialized.
+           If the allocations fails, DhNew() returns NULL.
+
+**/
+VOID *
+EFIAPI
+DhNewByNid (
+  IN UINTN  Nid
+  )
+{
+  switch (Nid) {
+  case CRYPTO_NID_FFDHE2048:
+    return DH_new_by_nid (NID_ffdhe2048);
+  case CRYPTO_NID_FFDHE3072:
+    return DH_new_by_nid (NID_ffdhe3072);
+  case CRYPTO_NID_FFDHE4096:
+    return DH_new_by_nid (NID_ffdhe4096);
+  default:
+    return NULL;
+  }
 }
 
 /**

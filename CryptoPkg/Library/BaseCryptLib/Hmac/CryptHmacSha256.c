@@ -214,3 +214,65 @@ HmacSha256Final (
 
   return TRUE;
 }
+
+/**
+  Computes the HMAC-SHA256 digest of a input data buffer.
+
+  This function performs the HMAC-SHA256 digest of a given data buffer, and places
+  the digest value into the specified memory.
+
+  If this interface is not supported, then return FALSE.
+  
+  @param[in]   Data        Pointer to the buffer containing the data to be digested.
+  @param[in]   DataSize    Size of Data buffer in bytes.
+  @param[in]   Key         Pointer to the user-supplied key.
+  @param[in]   KeySize     Key size in bytes.
+  @param[out]  HashValue   Pointer to a buffer that receives the HMAC-SHA256 digest
+                           value (32 bytes).
+
+  @retval TRUE   HMAC-SHA256 digest computation succeeded.
+  @retval FALSE  HMAC-SHA256 digest computation failed.
+  @retval FALSE  This interface is not supported.
+
+**/
+BOOLEAN
+EFIAPI
+HmacSha256All (
+  IN   CONST VOID   *Data,
+  IN   UINTN        DataSize,
+  IN   CONST UINT8  *Key,
+  IN   UINTN        KeySize,
+  OUT  UINT8       *HmacValue
+  )
+{
+  UINT32    Length;
+  HMAC_CTX  *Ctx;
+  BOOLEAN   RetVal;
+
+  Ctx = HMAC_CTX_new ();
+  if (Ctx == NULL) {
+    return FALSE;
+  }
+  
+  RetVal = (BOOLEAN) HMAC_CTX_reset (Ctx);
+  if (!RetVal) {
+    goto Done;
+  }
+  RetVal = (BOOLEAN) HMAC_Init_ex (Ctx, Key, (UINT32) KeySize, EVP_sha256(), NULL);
+  if (!RetVal) {
+    goto Done;
+  }
+  RetVal = (BOOLEAN) HMAC_Update (Ctx, Data, DataSize);
+  if (!RetVal) {
+    goto Done;
+  }
+  RetVal = (BOOLEAN) HMAC_Final (Ctx, HmacValue, &Length);
+  if (!RetVal) {
+    goto Done;
+  }
+
+Done:
+  HMAC_CTX_free (Ctx);
+
+  return RetVal;
+}
