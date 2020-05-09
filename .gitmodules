@@ -17,3 +17,6 @@
 	path = BaseTools/Source/C/BrotliCompress/brotli
 	url = https://github.com/google/brotli
 	ignore = untracked
+[submodule "DeviceSecurityPkg/Library/SpdmLib/openspdm"]
+	path = DeviceSecurityPkg/Library/SpdmLib/openspdm
+	url = https://github.com/jyao1/openspdm
