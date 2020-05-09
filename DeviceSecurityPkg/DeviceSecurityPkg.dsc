@@ -17,6 +17,10 @@
   BUILD_TARGETS                  = DEBUG|RELEASE|NOOPT
   SKUID_IDENTIFIER               = DEFAULT
 
+#DEFINE CRYPT_LIB = OPENSSL
+#DEFINE CRYPT_LIB = MBEDTLS
+DEFINE CRYPT_LIB = OPENSSL
+
 [LibraryClasses]
   #
   # Entry point
@@ -90,6 +94,7 @@
   IntrinsicLib|CryptoPkg/Library/IntrinsicLib/IntrinsicLib.inf
   OpensslLib|CryptoPkg/Library/OpensslLib/OpensslLib.inf
   RngLib|MdePkg/Library/BaseRngLib/BaseRngLib.inf
+  MbedTlsLib|CryptoMbedTlsPkg/Library/MbedTlsLib/MbedTlsLib.inf
 
   SpdmCommonLib|DeviceSecurityPkg/Library/SpdmLib/SpdmCommonLib.inf
   SpdmRequesterLib|DeviceSecurityPkg/Library/SpdmLib/SpdmRequesterLib.inf
@@ -126,7 +131,11 @@
 [LibraryClasses.common.DXE_DRIVER]
   HobLib|MdePkg/Library/DxeHobLib/DxeHobLib.inf
   MemoryAllocationLib|MdePkg/Library/UefiMemoryAllocationLib/UefiMemoryAllocationLib.inf
+!if $(CRYPT_LIB) == MBEDTLS
+  BaseCryptLib|CryptoMbedTlsPkg/Library/BaseCryptLib/BaseCryptLib.inf
+!else
   BaseCryptLib|CryptoPkg/Library/BaseCryptLib/BaseCryptLib.inf
+!endif
 !if $(TARGET) == DEBUG
   DebugLib|MdeModulePkg/Library/PeiDxeDebugLibReportStatusCode/PeiDxeDebugLibReportStatusCode.inf
   ReportStatusCodeLib|MdeModulePkg/Library/DxeReportStatusCodeLib/DxeReportStatusCodeLib.inf
@@ -161,7 +170,11 @@
 [LibraryClasses.common.UEFI_DRIVER]
   HobLib|MdePkg/Library/DxeHobLib/DxeHobLib.inf
   MemoryAllocationLib|MdePkg/Library/UefiMemoryAllocationLib/UefiMemoryAllocationLib.inf
+!if $(CRYPT_LIB) == MBEDTLS
+  BaseCryptLib|CryptoMbedTlsPkg/Library/BaseCryptLib/BaseCryptLib.inf
+!else
   BaseCryptLib|CryptoPkg/Library/BaseCryptLib/BaseCryptLib.inf
+!endif
 !if $(TARGET) == DEBUG
   DebugLib|MdeModulePkg/Library/PeiDxeDebugLibReportStatusCode/PeiDxeDebugLibReportStatusCode.inf
   ReportStatusCodeLib|MdeModulePkg/Library/DxeReportStatusCodeLib/DxeReportStatusCodeLib.inf
@@ -171,7 +184,11 @@
 [LibraryClasses.common.UEFI_APPLICATION]
   HobLib|MdePkg/Library/DxeHobLib/DxeHobLib.inf
   MemoryAllocationLib|MdePkg/Library/UefiMemoryAllocationLib/UefiMemoryAllocationLib.inf
+!if $(CRYPT_LIB) == MBEDTLS
+  BaseCryptLib|CryptoMbedTlsPkg/Library/BaseCryptLib/BaseCryptLib.inf
+!else
   BaseCryptLib|CryptoPkg/Library/BaseCryptLib/BaseCryptLib.inf
+!endif
 !if $(TARGET) == DEBUG
   DebugLib|MdeModulePkg/Library/PeiDxeDebugLibReportStatusCode/PeiDxeDebugLibReportStatusCode.inf
   ReportStatusCodeLib|MdeModulePkg/Library/DxeReportStatusCodeLib/DxeReportStatusCodeLib.inf
@@ -218,7 +235,11 @@
   DeviceSecurityPkg/Test/TestSpdm/TestSpdm.inf
   DeviceSecurityPkg/Test/DeployCert/DeployCert.inf
 
+!if $(CRYPT_LIB) == MBEDTLS
+  CryptoMbedTlsPkg/Test/Cryptest/Cryptest.inf
+!else
   DeviceSecurityPkg/Test/Cryptest/Cryptest.inf
+!endif
   DeviceSecurityPkg/Test/Cryperf/Cryperf.inf
 
 [BuildOptions]
