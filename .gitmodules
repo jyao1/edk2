@@ -20,3 +20,6 @@
 [submodule "DeviceSecurityPkg/Library/SpdmLib/openspdm"]
 	path = DeviceSecurityPkg/Library/SpdmLib/openspdm
 	url = https://github.com/jyao1/openspdm
+[submodule "CryptoMbedTlsPkg/Library/MbedTlsLib/mbedtls"]
+	path = CryptoMbedTlsPkg/Library/MbedTlsLib/mbedtls
+	url = https://github.com/ARMmbed/mbedtls
