@@ -116,6 +116,16 @@
   ShellLib|ShellPkg/Library/UefiShellLib/UefiShellLib.inf
   FileHandleLib|MdePkg/Library/UefiFileHandleLib/UefiFileHandleLib.inf
 
+  IntrinsicLib|CryptoPkg/Library/IntrinsicLib/IntrinsicLib.inf
+  OpensslLib|CryptoPkg/Library/OpensslLib/OpensslLib.inf
+  RngLib|MdePkg/Library/BaseRngLib/BaseRngLib.inf
+  MbedTlsLib|CryptoMbedTlsPkg/Library/MbedTlsLib/MbedTlsLib.inf
+
+  SpdmCommonLib|DeviceSecurityPkg/Library/SpdmLib/SpdmCommonLib.inf
+  SpdmRequesterLib|DeviceSecurityPkg/Library/SpdmLib/SpdmRequesterLib.inf
+  SpdmResponderLib|DeviceSecurityPkg/Library/SpdmLib/SpdmResponderLib.inf
+  SpdmEncodingLib|DeviceSecurityPkg/Library/SpdmLib/SpdmEncodingLib.inf
+
 [LibraryClasses.common.SEC]
   PeiServicesLib|EmulatorPkg/Library/SecPeiServicesLib/SecPeiServicesLib.inf
   PcdLib|MdePkg/Library/BasePcdLibNull/BasePcdLibNull.inf
@@ -152,12 +162,14 @@
   ExtractGuidedSectionLib|MdePkg/Library/PeiExtractGuidedSectionLib/PeiExtractGuidedSectionLib.inf
   SerialPortLib|EmulatorPkg/Library/PeiEmuSerialPortLib/PeiEmuSerialPortLib.inf
   TimerLib|EmulatorPkg/Library/PeiTimerLib/PeiTimerLib.inf
+  TpmMeasurementLib|SecurityPkg/Library/PeiTpmMeasurementLib/PeiTpmMeasurementLib.inf
 
 [LibraryClasses.common.PEI_CORE]
   PcdLib|MdePkg/Library/BasePcdLibNull/BasePcdLibNull.inf
 
 [LibraryClasses.common.PEIM]
   PcdLib|MdePkg/Library/PeiPcdLib/PeiPcdLib.inf
+  BaseCryptLib|CryptoPkg/Library/BaseCryptLib/PeiCryptLib.inf
 
 [LibraryClasses.common.DXE_CORE]
   HobLib|MdePkg/Library/DxeCoreHobLib/DxeCoreHobLib.inf
@@ -181,6 +193,11 @@
   EmuThunkLib|EmulatorPkg/Library/DxeEmuLib/DxeEmuLib.inf
   PeCoffExtraActionLib|EmulatorPkg/Library/DxeEmuPeCoffExtraActionLib/DxeEmuPeCoffExtraActionLib.inf
   TimerLib|EmulatorPkg/Library/DxeTimerLib/DxeTimerLib.inf
+!if $(CRYPT_LIB) == MBEDTLS
+  BaseCryptLib|CryptoMbedTlsPkg/Library/BaseCryptLib/BaseCryptLib.inf
+!else
+  BaseCryptLib|CryptoPkg/Library/BaseCryptLib/BaseCryptLib.inf
+!endif
 
 [PcdsFeatureFlag]
   gEfiMdeModulePkgTokenSpaceGuid.PcdDxeIplSwitchToLongMode|FALSE
@@ -294,6 +311,12 @@
   EmulatorPkg/FlashMapPei/FlashMapPei.inf
   EmulatorPkg/ThunkPpiToProtocolPei/ThunkPpiToProtocolPei.inf
   MdeModulePkg/Core/DxeIplPeim/DxeIpl.inf
+  DeviceSecurityPkg/SpdmDeviceSecurityPei/SpdmDeviceSecurityPei.inf
+
+  DeviceSecurityPkg/Test/DeviceSecurityPolicyStub/DeviceSecurityPolicyStubPei.inf
+  DeviceSecurityPkg/Test/TestSpdm/TestSpdmPei.inf
+  DeviceSecurityPkg/Test/SpdmStub/SpdmStubPei.inf
+  DeviceSecurityPkg/Test/PciIoStub/PciIoStubPei.inf
 
   ##
   #  DXE Phase modules

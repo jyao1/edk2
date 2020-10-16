@@ -15,6 +15,8 @@
 
 typedef struct _EDKII_DEVICE_SECURITY_POLICY_PROTOCOL EDKII_DEVICE_SECURITY_POLICY_PROTOCOL;
 
+typedef struct _EDKII_DEVICE_SECURITY_POLICY_PPI EDKII_DEVICE_SECURITY_POLICY_PPI;
+
 //
 // Revision The revision to which the DEVICE_SECURITY_POLICY protocol interface adheres.
 //          All future revisions must be backwards compatible.
@@ -129,6 +131,29 @@ struct _EDKII_DEVICE_SECURITY_POLICY_PROTOCOL {
   EDKII_DEVICE_SECURITY_NOTIFY_DEVICE_STATE   NotifyDeviceState;
 };
 
+typedef
+EFI_STATUS
+(EFIAPI *EDKII_DEVICE_SECURITY_GET_DEVICE_POLICY_PPI) (
+  IN  EDKII_DEVICE_SECURITY_POLICY_PPI  *This,
+  IN  EDKII_DEVICE_IDENTIFIER           *DeviceId,
+  OUT EDKII_DEVICE_SECURITY_POLICY      *DeviceSecurityPolicy
+  );
+
+typedef
+EFI_STATUS
+(EFIAPI *EDKII_DEVICE_SECURITY_NOTIFY_DEVICE_STATE_PPI) (
+  IN  EDKII_DEVICE_SECURITY_POLICY_PPI  *This,
+  IN  EDKII_DEVICE_IDENTIFIER           *DeviceId,
+  IN  EDKII_DEVICE_SECURITY_STATE       *DeviceSecurityState
+  );
+
+struct _EDKII_DEVICE_SECURITY_POLICY_PPI {
+  EDKII_DEVICE_SECURITY_GET_DEVICE_POLICY_PPI     GetDevicePolicy;
+  EDKII_DEVICE_SECURITY_NOTIFY_DEVICE_STATE_PPI   NotifyDeviceState;
+};
+
 extern EFI_GUID gEdkiiDeviceSecurityPolicyProtocolGuid;
+
+extern EFI_GUID gEdkiiDeviceSecurityPolicyPpiGuid;
 
 #endif

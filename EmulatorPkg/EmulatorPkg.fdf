@@ -128,6 +128,11 @@ INF  MdeModulePkg/Universal/FaultTolerantWritePei/FaultTolerantWritePei.inf
 INF  MdeModulePkg/Universal/Variable/Pei/VariablePei.inf
 INF  MdeModulePkg/Core/DxeIplPeim/DxeIpl.inf
 
+INF  DeviceSecurityPkg/SpdmDeviceSecurityPei/SpdmDeviceSecurityPei.inf
+INF  DeviceSecurityPkg/Test/DeviceSecurityPolicyStub/DeviceSecurityPolicyStubPei.inf
+INF  DeviceSecurityPkg/Test/TestSpdm/TestSpdmPei.inf
+INF  DeviceSecurityPkg/Test/SpdmStub/SpdmStubPei.inf
+
 #
 #  DXE Phase modules
 #

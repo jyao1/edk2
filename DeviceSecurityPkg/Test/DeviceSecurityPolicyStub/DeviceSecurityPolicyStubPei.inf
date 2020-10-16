@@ -1,0 +1,39 @@
+## @file
+#  EDKII Device Security Policy Stub
+#
+# Copyright (c) 2020, Intel Corporation. All rights reserved.<BR>
+# SPDX-License-Identifier: BSD-2-Clause-Patent
+#
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = DeviceSecurityPolicyStubPei
+  FILE_GUID                      = E3152C9F-8549-46C2-8B09-40EA0AE116F3
+  MODULE_TYPE                    = PEIM
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = MainEntryPoint
+
+[Sources]
+  DeviceSecurityPolicyStubPei.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+  MdeModulePkg/MdeModulePkg.dec
+  DeviceSecurityPkg/DeviceSecurityPkg.dec
+
+[LibraryClasses]
+  PeimEntryPoint
+  PeiServicesLib
+  PeiServicesTablePointerLib
+  MemoryAllocationLib
+  #DevicePathLib
+  BaseMemoryLib
+  PrintLib
+  DebugLib
+
+[Ppis]
+  gEdkiiDeviceSecurityPolicyPpiGuid        ## PRODUCES
+
+[Depex]
+  TRUE

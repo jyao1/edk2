@@ -26,6 +26,8 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 //
 typedef struct _EDKII_DEVICE_SECURITY_PROTOCOL  EDKII_DEVICE_SECURITY_PROTOCOL;
 
+typedef struct _EDKII_DEVICE_SECURITY_PPI  EDKII_DEVICE_SECURITY_PPI;
+
 //
 // Revision The revision to which the DEVICE_SECURITY interface adheres.
 //          All future revisions must be backwards compatible.
@@ -148,10 +150,26 @@ struct _EDKII_DEVICE_SECURITY_PROTOCOL {
   EDKII_DEVICE_AUTHENTICATE           DeviceAuthenticate;
 };
 
+typedef
+EFI_STATUS
+(EFIAPI *EDKII_DEVICE_AUTHENTICATE_PPI)(
+  IN EDKII_DEVICE_SECURITY_PPI  *This,
+  IN EDKII_DEVICE_IDENTIFIER    *DeviceId
+  );
+
+struct _EDKII_DEVICE_SECURITY_PPI {
+  EDKII_DEVICE_AUTHENTICATE_PPI  DeviceAuthenticate;
+};
+
 ///
 /// Device Security Protocol GUID variable.
 ///
 extern EFI_GUID gEdkiiDeviceSecurityProtocolGuid;
+
+///
+/// Device Security Ppi GUID variable.
+///
+extern EFI_GUID gEdkiiDeviceSecurityPpiGuid;
 
 ///
 /// Device Identifier tpye GUID variable.
