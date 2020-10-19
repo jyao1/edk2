@@ -129,6 +129,20 @@
   AuthVariableLib|MdeModulePkg/Library/AuthVariableLibNull/AuthVariableLibNull.inf
 !endif
 
+  RngLib|MdePkg/Library/BaseRngLib/BaseRngLib.inf
+  IntrinsicLib|CryptoPkg/Library/IntrinsicLib/IntrinsicLib.inf
+  OpensslLib|CryptoPkg/Library/OpensslLib/OpensslLib.inf
+  MbedTlsLib|CryptoMbedTlsPkg/Library/MbedTlsLib/MbedTlsLib.inf
+
+  SpdmDeviceSecretLib|DeviceSecurityPkg/Library/SpdmLib/SpdmDeviceSecretLibNull.inf
+  SpdmCryptLib|DeviceSecurityPkg/Library/SpdmLib/SpdmCryptLib.inf
+  SpdmCommonLib|DeviceSecurityPkg/Library/SpdmLib/SpdmCommonLib.inf
+  SpdmRequesterLib|DeviceSecurityPkg/Library/SpdmLib/SpdmRequesterLib.inf
+  SpdmResponderLib|DeviceSecurityPkg/Library/SpdmLib/SpdmResponderLib.inf
+  SpdmSecuredMessageLib|DeviceSecurityPkg/Library/SpdmLib/SpdmSecuredMessageLib.inf
+  SpdmTransportMctpLib|DeviceSecurityPkg/Library/SpdmLib/SpdmTransportMctpLib.inf
+  SpdmTransportPciDoeLib|DeviceSecurityPkg/Library/SpdmLib/SpdmTransportPciDoeLib.inf
+
 [LibraryClasses.common.SEC]
   PeiServicesLib|EmulatorPkg/Library/SecPeiServicesLib/SecPeiServicesLib.inf
   PcdLib|MdePkg/Library/BasePcdLibNull/BasePcdLibNull.inf
@@ -165,12 +179,14 @@
   ExtractGuidedSectionLib|MdePkg/Library/PeiExtractGuidedSectionLib/PeiExtractGuidedSectionLib.inf
   SerialPortLib|EmulatorPkg/Library/PeiEmuSerialPortLib/PeiEmuSerialPortLib.inf
   TimerLib|EmulatorPkg/Library/PeiTimerLib/PeiTimerLib.inf
+  TpmMeasurementLib|SecurityPkg/Library/PeiTpmMeasurementLib/PeiTpmMeasurementLib.inf
 
 [LibraryClasses.common.PEI_CORE]
   PcdLib|MdePkg/Library/BasePcdLibNull/BasePcdLibNull.inf
 
 [LibraryClasses.common.PEIM]
   PcdLib|MdePkg/Library/PeiPcdLib/PeiPcdLib.inf
+  BaseCryptLib|CryptoPkg/Library/BaseCryptLib/PeiCryptLib.inf
 
 [LibraryClasses.common.DXE_CORE]
   HobLib|MdePkg/Library/DxeCoreHobLib/DxeCoreHobLib.inf
@@ -204,6 +220,7 @@
   EmuThunkLib|EmulatorPkg/Library/DxeEmuLib/DxeEmuLib.inf
   PeCoffExtraActionLib|EmulatorPkg/Library/DxeEmuPeCoffExtraActionLib/DxeEmuPeCoffExtraActionLib.inf
   TimerLib|EmulatorPkg/Library/DxeTimerLib/DxeTimerLib.inf
+  BaseCryptLib|CryptoPkg/Library/BaseCryptLib/BaseCryptLib.inf
 
 [PcdsFeatureFlag]
   gEfiMdeModulePkgTokenSpaceGuid.PcdDxeIplSwitchToLongMode|FALSE
@@ -322,6 +339,15 @@
   EmulatorPkg/ThunkPpiToProtocolPei/ThunkPpiToProtocolPei.inf
   MdeModulePkg/Core/DxeIplPeim/DxeIpl.inf
 
+  DeviceSecurityPkg/SpdmDeviceSecurityPei/SpdmDeviceSecurityPei.inf
+  DeviceSecurityPkg/TestPei/DeviceSecurityPolicyStubPei/DeviceSecurityPolicyStubPei.inf
+  DeviceSecurityPkg/TestPei/TestSpdmPei/TestSpdmPei.inf
+  DeviceSecurityPkg/TestPei/SpdmStubPei/SpdmStubPei.inf {
+  <LibraryClasses>
+    SpdmDeviceSecretLib|DeviceSecurityPkg/TestPei/SpdmDeviceSecretLibTestStubPei/SpdmDeviceSecretLibTestStubPei.inf
+  }
+  DeviceSecurityPkg/TestPei/PciIoStubPei/PciIoStubPei.inf
+
   ##
   #  DXE Phase modules
   ##
@@ -436,6 +462,24 @@
   }
 
   FatPkg/EnhancedFatDxe/Fat.inf
+
+
+  DeviceSecurityPkg/SpdmDeviceSecurityDxe/SpdmDeviceSecurityDxe.inf
+  DeviceSecurityPkg/Test/DeviceSecurityPolicyStub/DeviceSecurityPolicyStub.inf
+  DeviceSecurityPkg/Test/Tcg2Stub/Tcg2Stub.inf
+  DeviceSecurityPkg/Test/PciIoStub/PciIoStub.inf
+  DeviceSecurityPkg/Test/SpdmStub/SpdmStub.inf {
+  <LibraryClasses>
+    SpdmDeviceSecretLib|DeviceSecurityPkg/Test/SpdmDeviceSecretLibTestStub/SpdmDeviceSecretLibTestStub.inf
+  }
+  DeviceSecurityPkg/Test/TestSpdm/TestSpdm.inf
+  DeviceSecurityPkg/Test/DeployCert/DeployCert.inf
+
+  DeviceSecurityPkg/Test/PciIoPciDoeStub/PciIoPciDoeStub.inf {
+  <LibraryClasses>
+    SpdmDeviceSecretLib|DeviceSecurityPkg/Test/SpdmDeviceSecretLibTestStub/SpdmDeviceSecretLibTestStub.inf
+  }
+  DeviceSecurityPkg/Test/SpdmPciDoeStub/SpdmPciDoeStub.inf
 
 !if "XCODE5" not in $(TOOL_CHAIN_TAG)
   ShellPkg/DynamicCommand/TftpDynamicCommand/TftpDynamicCommand.inf {
