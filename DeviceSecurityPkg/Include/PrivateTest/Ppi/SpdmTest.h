@@ -10,7 +10,7 @@
 #define __SPDM_TEST_PPI_H__
 
 #include <Base.h>
-#include <IndustryStandard/Spdm.h>
+#include <industry_standard/spdm.h>
 #include <Ppi/Spdm.h>
 
 typedef struct _SPDM_TEST_PPI SPDM_TEST_PPI;

@@ -22,32 +22,32 @@
 #
 
 [Sources]
-  openspdm/Library/SpdmCommonLib/SpdmCommonLibInternal.h
-  openspdm/Library/SpdmResponderLib/SpdmResponderLibAlgorithm.c
-  openspdm/Library/SpdmResponderLib/SpdmResponderLibCapability.c
-  openspdm/Library/SpdmResponderLib/SpdmResponderLibCertificate.c
-  openspdm/Library/SpdmResponderLib/SpdmResponderLibChallengeAuth.c
-  openspdm/Library/SpdmResponderLib/SpdmResponderLibCommunication.c
-  openspdm/Library/SpdmResponderLib/SpdmResponderLibDigest.c
-  openspdm/Library/SpdmResponderLib/SpdmResponderLibEncapChallenge.c
-  openspdm/Library/SpdmResponderLib/SpdmResponderLibEncapGetCertificate.c
-  openspdm/Library/SpdmResponderLib/SpdmResponderLibEncapGetDigest.c
-  openspdm/Library/SpdmResponderLib/SpdmResponderLibEncapKeyUpdate.c
-  openspdm/Library/SpdmResponderLib/SpdmResponderLibEncapResponse.c
-  openspdm/Library/SpdmResponderLib/SpdmResponderLibEndSession.c
-  openspdm/Library/SpdmResponderLib/SpdmResponderLibError.c
-  openspdm/Library/SpdmResponderLib/SpdmResponderLibFinish.c
-  openspdm/Library/SpdmResponderLib/SpdmResponderLibHandleResponseState.c
-  openspdm/Library/SpdmResponderLib/SpdmResponderLibHeartbeat.c
-  openspdm/Library/SpdmResponderLib/SpdmResponderLibInternal.h
-  openspdm/Library/SpdmResponderLib/SpdmResponderLibKeyExchange.c
-  openspdm/Library/SpdmResponderLib/SpdmResponderLibKeyUpdate.c
-  openspdm/Library/SpdmResponderLib/SpdmResponderLibMeasurement.c
-  openspdm/Library/SpdmResponderLib/SpdmResponderLibPskExchange.c
-  openspdm/Library/SpdmResponderLib/SpdmResponderLibPskFinish.c
-  openspdm/Library/SpdmResponderLib/SpdmResponderLibReceiveSend.c
-  openspdm/Library/SpdmResponderLib/SpdmResponderLibRespondIfReady.c
-  openspdm/Library/SpdmResponderLib/SpdmResponderLibVersion.c
+  libspdm/library/spdm_common_lib/spdm_common_lib_internal.h
+  libspdm/library/spdm_responder_lib/algorithms.c
+  libspdm/library/spdm_responder_lib/capabilities.c
+  libspdm/library/spdm_responder_lib/certificate.c
+  libspdm/library/spdm_responder_lib/challenge_auth.c
+  libspdm/library/spdm_responder_lib/communication.c
+  libspdm/library/spdm_responder_lib/digests.c
+  libspdm/library/spdm_responder_lib/encap_challenge.c
+  libspdm/library/spdm_responder_lib/encap_get_certificate.c
+  libspdm/library/spdm_responder_lib/encap_get_digests.c
+  libspdm/library/spdm_responder_lib/encap_key_update.c
+  libspdm/library/spdm_responder_lib/encap_response.c
+  libspdm/library/spdm_responder_lib/end_session.c
+  libspdm/library/spdm_responder_lib/error.c
+  libspdm/library/spdm_responder_lib/finish.c
+  libspdm/library/spdm_responder_lib/handle_response_state.c
+  libspdm/library/spdm_responder_lib/heartbeat.c
+  libspdm/library/spdm_responder_lib/spdm_responder_lib_internal.h
+  libspdm/library/spdm_responder_lib/key_exchange.c
+  libspdm/library/spdm_responder_lib/key_update.c
+  libspdm/library/spdm_responder_lib/measurements.c
+  libspdm/library/spdm_responder_lib/psk_exchange.c
+  libspdm/library/spdm_responder_lib/psk_finish.c
+  libspdm/library/spdm_responder_lib/receive_send.c
+  libspdm/library/spdm_responder_lib/respond_if_ready.c
+  libspdm/library/spdm_responder_lib/version.c
 
 [Packages]
   MdePkg/MdePkg.dec

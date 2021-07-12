@@ -7,7 +7,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 **/
 
 #include <PiPei.h>
-#include <IndustryStandard/Spdm.h>
+#include <industry_standard/spdm.h>
 #include <IndustryStandard/Pci.h>
 #include <Ppi/DeviceSecurity.h>
 #include <Ppi/DeviceSecurityPolicy.h>

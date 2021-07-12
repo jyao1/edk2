@@ -13,7 +13,7 @@
 #include <Library/MemoryAllocationLib.h>
 #include <Library/PeiServicesLib.h>
 #include <Library/PeiServicesTablePointerLib.h>
-#include <Library/SpdmRequesterLib.h>
+#include <library/spdm_requester_lib.h>
 #include <Ppi/SpdmIo.h>
 #include <Ppi/Spdm.h>
 #include <Ppi/SpdmTest.h>
@@ -194,7 +194,7 @@ TestSpdmProcessPacketCallback (
   SPDM_VENDOR_DEFINED_REQUEST_MINE   *SpmdRequest;
   SpmdRequest = Request;
   ASSERT (RequestSize == sizeof(SPDM_VENDOR_DEFINED_REQUEST_MINE));
-  ASSERT (SpmdRequest->Header.RequestResponseCode == SPDM_VENDOR_DEFINED_REQUEST);
+  ASSERT (SpmdRequest->Header.request_response_code == SPDM_VENDOR_DEFINED_REQUEST);
   ASSERT (SpmdRequest->StandardID == SPDM_REGISTRY_ID_PCISIG);
   ASSERT (SpmdRequest->VendorID == 0x8086);
   ASSERT (SpmdRequest->PayloadLength == TEST_PAYLOAD_LEN);
@@ -228,7 +228,7 @@ TestSpdmApplication (
   ASSERT_EFI_ERROR(Status);
 
   ASSERT (ResponseSize == sizeof(SPDM_VENDOR_DEFINED_RESPONSE_MINE));
-  ASSERT (Response.Header.RequestResponseCode == SPDM_VENDOR_DEFINED_RESPONSE);
+  ASSERT (Response.Header.request_response_code == SPDM_VENDOR_DEFINED_RESPONSE);
   ASSERT (Response.StandardID == SPDM_REGISTRY_ID_PCISIG);
   ASSERT (Response.VendorID == 0x8086);
   ASSERT (Response.PayloadLength == TEST_PAYLOAD_LEN);

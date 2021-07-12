@@ -22,11 +22,11 @@
 #
 
 [Sources]
-  openspdm/Library/SpdmSecuredMessageLib/SpdmSecuredMessageLibContextData.c
-  openspdm/Library/SpdmSecuredMessageLib/SpdmSecuredMessageLibEncodeDecode.c
-  openspdm/Library/SpdmSecuredMessageLib/SpdmSecuredMessageLibInternal.h
-  openspdm/Library/SpdmSecuredMessageLib/SpdmSecuredMessageLibKeyExchange.c
-  openspdm/Library/SpdmSecuredMessageLib/SpdmSecuredMessageLibSession.c
+  libspdm/library/spdm_secured_message_lib/context_data.c
+  libspdm/library/spdm_secured_message_lib/encode_decode.c
+  libspdm/library/spdm_secured_message_lib/spdm_secured_message_lib_internal.h
+  libspdm/library/spdm_secured_message_lib/key_exchange.c
+  libspdm/library/spdm_secured_message_lib/session.c
 
 [Packages]
   MdePkg/MdePkg.dec

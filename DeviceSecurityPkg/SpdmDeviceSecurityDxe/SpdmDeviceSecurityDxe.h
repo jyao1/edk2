@@ -10,8 +10,9 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #ifndef __SPDM_DEVICE_SECURTY_DXE_H__
 
 #include <Uefi.h>
-#include <IndustryStandard/Spdm.h>
-#include <IndustryStandard/SpdmSecuredMessage.h>
+#include <library/LibspdmStub.h>
+#include <industry_standard/spdm.h>
+#include <industry_standard/spdm_secured_message.h>
 #include <IndustryStandard/Pci.h>
 #include <IndustryStandard/Tpm20.h>
 #include <IndustryStandard/UefiTcgPlatform.h>
@@ -25,9 +26,9 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include <Library/TpmMeasurementLib.h>
 #include <Library/RngLib.h>
 #include <Library/BaseCryptLib.h>
-#include <Library/SpdmRequesterLib.h>
-#include <Library/SpdmTransportMctpLib.h>
-#include <Library/SpdmTransportPciDoeLib.h>
+#include <library/spdm_requester_lib.h>
+#include <library/spdm_transport_mctp_lib.h>
+#include <library/spdm_transport_pcidoe_lib.h>
 #include <Guid/DeviceAuthentication.h>
 #include <Guid/ImageAuthentication.h>
 #include <Protocol/PciIo.h>
@@ -35,7 +36,6 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include <Protocol/Spdm.h>
 #include <Protocol/DeviceSecurity.h>
 #include <Protocol/DeviceSecurityPolicy.h>
-
 
 typedef struct {
   UINTN                                           Signature;

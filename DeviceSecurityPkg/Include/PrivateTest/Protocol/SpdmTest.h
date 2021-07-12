@@ -10,7 +10,7 @@
 #define __SPDM_TEST_PROTOCOL_H__
 
 #include <Base.h>
-#include <IndustryStandard/Spdm.h>
+#include <industry_standard/spdm.h>
 #include <Protocol/Spdm.h>
 
 typedef struct _SPDM_TEST_PROTOCOL SPDM_TEST_PROTOCOL;

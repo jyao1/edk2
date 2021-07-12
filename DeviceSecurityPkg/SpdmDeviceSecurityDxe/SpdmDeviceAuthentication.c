@@ -35,7 +35,7 @@ DoAuthenticationViaSpdm (
   SpdmContext = SpdmDriverContext->SpdmContext;
 
   ZeroMem (&Parameter, sizeof(Parameter));
-  Parameter.Location = SpdmDataLocationConnection;
+  Parameter.location = SpdmDataLocationConnection;
   DataSize = sizeof(CapabilityFlags);
   SpdmGetData (SpdmContext, SpdmDataCapabilityFlags, &Parameter, &CapabilityFlags, &DataSize);
 

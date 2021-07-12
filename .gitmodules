@@ -17,9 +17,9 @@
 	path = BaseTools/Source/C/BrotliCompress/brotli
 	url = https://github.com/google/brotli
 	ignore = untracked
-[submodule "DeviceSecurityPkg/Library/SpdmLib/openspdm"]
-	path = DeviceSecurityPkg/Library/SpdmLib/openspdm
-	url = https://github.com/jyao1/openspdm
 [submodule "CryptoMbedTlsPkg/Library/MbedTlsLib/mbedtls"]
 	path = CryptoMbedTlsPkg/Library/MbedTlsLib/mbedtls
 	url = https://github.com/ARMmbed/mbedtls
+[submodule "DeviceSecurityPkg/Library/SpdmLib/libspdm"]
+	path = DeviceSecurityPkg/Library/SpdmLib/libspdm
+	url = https://github.com/DMTF/libspdm.git   

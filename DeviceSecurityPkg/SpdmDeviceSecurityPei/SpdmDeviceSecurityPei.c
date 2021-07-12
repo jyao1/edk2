@@ -356,7 +356,7 @@ CreateSpdmDriverContext (
     DataSize = SignatureList->SignatureSize - sizeof(EFI_GUID);
     
     ZeroMem (&Parameter, sizeof(Parameter));
-    Parameter.Location = SpdmDataLocationLocal;
+    Parameter.location = SpdmDataLocationLocal;
     SpdmSetData (SpdmContext, SpdmDataPeerPublicCertChains, &Parameter, Data, DataSize);
     // Do not free it.
   } else {
@@ -365,7 +365,7 @@ CreateSpdmDriverContext (
 
   Data8 = 0;
   ZeroMem (&Parameter, sizeof(Parameter));
-  Parameter.Location = SpdmDataLocationLocal;
+  Parameter.location = SpdmDataLocationLocal;
   SpdmSetData (SpdmContext, SpdmDataCapabilityCTExponent, &Parameter, &Data8, sizeof(Data8));
 
   Data32 = 0 |

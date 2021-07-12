@@ -8,13 +8,13 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 **/
 
 #include <Uefi.h>
-#include <IndustryStandard/Spdm.h>
-#include <IndustryStandard/SpdmSecuredMessage.h>
+#include <industry_standard/spdm.h>
+#include <industry_standard/spdm_secured_message.h>
 #include <Library/BaseLib.h>
 #include <Library/DebugLib.h>
 #include <Library/BaseMemoryLib.h>
 #include <Library/MemoryAllocationLib.h>
-#include <Library/SpdmCommonLib.h>
+#include <library/spdm_common_lib.h>
 #include <Library/UefiLib.h>
 #include <Guid/DeviceAuthentication.h>
 #include <Guid/ImageAuthentication.h>
@@ -68,17 +68,17 @@ SpdmMeasurementCollectionFunc (
 
   MeasurementBlock = DeviceMeasurement;
   for (Index = 0; Index < MEASUREMENT_BLOCK_NUMBER; Index++) {
-    MeasurementBlock->MeasurementBlockCommonHeader.Index = Index + 1;
-    MeasurementBlock->MeasurementBlockCommonHeader.MeasurementSpecification = SPDM_MEASUREMENT_BLOCK_HEADER_SPECIFICATION_DMTF;
+    MeasurementBlock->Measurement_block_common_header.index = Index + 1;
+    MeasurementBlock->Measurement_block_common_header.measurement_specification = SPDM_MEASUREMENT_BLOCK_HEADER_SPECIFICATION_DMTF;
     if (Index < 4) {
-      MeasurementBlock->MeasurementBlockDmtfHeader.DMTFSpecMeasurementValueType = Index;
-      MeasurementBlock->MeasurementBlockDmtfHeader.DMTFSpecMeasurementValueSize = (UINT16)HashSize;
+      MeasurementBlock->Measurement_block_dmtf_header.dmtf_spec_measurement_value_type = Index;
+      MeasurementBlock->Measurement_block_dmtf_header.dmtf_spec_measurement_value_size = (UINT16)HashSize;
     } else {
-      MeasurementBlock->MeasurementBlockDmtfHeader.DMTFSpecMeasurementValueType = Index | SPDM_MEASUREMENT_BLOCK_MEASUREMENT_TYPE_RAW_BIT_STREAM;
-      MeasurementBlock->MeasurementBlockDmtfHeader.DMTFSpecMeasurementValueSize = (UINT16)sizeof(Data);
+      MeasurementBlock->Measurement_block_dmtf_header.dmtf_spec_measurement_value_type = Index | SPDM_MEASUREMENT_BLOCK_MEASUREMENT_TYPE_RAW_BIT_STREAM;
+      MeasurementBlock->Measurement_block_dmtf_header.dmtf_spec_measurement_value_size = (UINT16)sizeof(Data);
     }
-    MeasurementBlock->MeasurementBlockCommonHeader.MeasurementSize = (UINT16)(sizeof(SPDM_MEASUREMENT_BLOCK_DMTF_HEADER) + 
-                                                                     MeasurementBlock->MeasurementBlockDmtfHeader.DMTFSpecMeasurementValueSize);
+    MeasurementBlock->Measurement_block_common_header.measurement_size = (UINT16)(sizeof(SPDM_MEASUREMENT_BLOCK_DMTF_HEADER) + 
+                                                                     MeasurementBlock->Measurement_block_dmtf_header.dmtf_spec_measurement_value_size);
     SetMem (Data, sizeof(Data), (UINT8)(Index + 1));
     if (Index < 4) {
       SpdmMeasurementHashAll (MeasurementHashAlgo, Data, sizeof(Data), (VOID *)(MeasurementBlock + 1));

@@ -22,7 +22,7 @@
 #
 
 [Sources]
-  openspdm/Library/SpdmCryptLib/SpdmCryptLib.c
+  libspdm/library/spdm_crypt_lib/crypt.c
 
 [Packages]
   MdePkg/MdePkg.dec

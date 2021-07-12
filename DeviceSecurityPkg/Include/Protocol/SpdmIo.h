@@ -10,7 +10,7 @@
 #define __SPDM_IO_PROTOCOL_H__
 
 #include <Base.h>
-#include <IndustryStandard/Spdm.h>
+#include <industry_standard/spdm.h>
 
 typedef struct _SPDM_IO_PROTOCOL SPDM_IO_PROTOCOL;
 

@@ -141,12 +141,12 @@ MainEntryPoint (
     CertChainSize = SignatureList->SignatureSize - sizeof(EFI_GUID);
 
     ZeroMem (&Parameter, sizeof(Parameter));
-    Parameter.Location = SpdmDataLocationLocal;
+    Parameter.location = SpdmDataLocationLocal;
     Data8 = SLOT_NUMBER;
     SpdmSetData (SpdmContext, SpdmDataLocalSlotCount, &Parameter, &Data8, sizeof(Data8));
 
     for (Index = 0; Index < SLOT_NUMBER; Index++) {
-      Parameter.AdditionalData[0] = Index;
+      Parameter.additional_data[0] = Index;
       SpdmSetData (SpdmContext, SpdmDataLocalPublicCertChain, &Parameter, CertChain, CertChainSize);
     }
     // do not free it

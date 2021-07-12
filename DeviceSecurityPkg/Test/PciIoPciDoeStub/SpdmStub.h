@@ -10,8 +10,8 @@
 #define _SPDM_STUB_H_
 
 #include <Uefi.h>
-#include <IndustryStandard/Spdm.h>
-#include <IndustryStandard/SpdmSecuredMessage.h>
+#include <industry_standard/spdm.h>
+#include <industry_standard/spdm_secured_message.h>
 #include <Library/BaseLib.h>
 #include <Library/DebugLib.h>
 #include <Library/BaseMemoryLib.h>
@@ -21,9 +21,9 @@
 #include <Library/UefiLib.h>
 #include <Library/RngLib.h>
 #include <Library/BaseCryptLib.h>
-#include <Library/SpdmResponderLib.h>
-#include <Library/SpdmTransportMctpLib.h>
-#include <Library/SpdmTransportPciDoeLib.h>
+#include <library/spdm_responder_lib.h>
+#include <library/spdm_transport_mctp_lib.h>
+#include <library/spdm_transport_pcidoe_lib.h>
 #include <Guid/DeviceAuthentication.h>
 #include <Guid/ImageAuthentication.h>
 #include <Protocol/SpdmIo.h>

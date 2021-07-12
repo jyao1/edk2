@@ -14,7 +14,7 @@
 
 [Includes]
   Include
-  Library/SpdmLib/openspdm/Include
+  Library/SpdmLib/libspdm/include
   
 [Includes.Common.Private]
   Include/PrivateTest

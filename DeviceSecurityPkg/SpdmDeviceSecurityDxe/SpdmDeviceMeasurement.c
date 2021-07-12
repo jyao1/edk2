@@ -20,7 +20,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 
 **/
 VOID
-InternalDumpData (
+internal_dump_data(
   IN UINT8  *Data,
   IN UINTN  Size
   );
@@ -180,7 +180,7 @@ ExtendMeasurement (
   SpdmContext = SpdmDriverContext->SpdmContext;
 
   ZeroMem (&Parameter, sizeof(Parameter));
-  Parameter.Location = SpdmDataLocationConnection;
+  Parameter.location = SpdmDataLocationConnection;
   DataSize = sizeof(MeasurementHashAlgo);
   Status = SpdmGetData (SpdmContext, SpdmDataMeasurementHashAlgo, &Parameter, &MeasurementHashAlgo, &DataSize);
   ASSERT_EFI_ERROR(Status);
@@ -191,32 +191,32 @@ ExtendMeasurement (
   DigestSize = MeasurementRecordLength - sizeof(SPDM_MEASUREMENT_BLOCK_DMTF);
   
   DEBUG((DEBUG_INFO, "SpdmMeasurementBlockCommonHeader\n"));
-  DEBUG((DEBUG_INFO, "  Index                        - 0x%02x\n", SpdmMeasurementBlockCommonHeader->Index));
-  DEBUG((DEBUG_INFO, "  MeasurementSpecification     - 0x%02x\n", SpdmMeasurementBlockCommonHeader->MeasurementSpecification));
-  DEBUG((DEBUG_INFO, "  MeasurementSize              - 0x%04x\n", SpdmMeasurementBlockCommonHeader->MeasurementSize));
+  DEBUG((DEBUG_INFO, "  Index                        - 0x%02x\n", SpdmMeasurementBlockCommonHeader->index));
+  DEBUG((DEBUG_INFO, "  MeasurementSpecification     - 0x%02x\n", SpdmMeasurementBlockCommonHeader->measurement_specification));
+  DEBUG((DEBUG_INFO, "  MeasurementSize              - 0x%04x\n", SpdmMeasurementBlockCommonHeader->measurement_size));
   DEBUG((DEBUG_INFO, "SpdmMeasurementBlockDmtfHeader\n"));
-  DEBUG((DEBUG_INFO, "  DMTFSpecMeasurementValueType - 0x%02x\n", SpdmMeasurementBlockDmtfHeader->DMTFSpecMeasurementValueType));
-  DEBUG((DEBUG_INFO, "  DMTFSpecMeasurementValueSize - 0x%04x\n", SpdmMeasurementBlockDmtfHeader->DMTFSpecMeasurementValueSize));
+  DEBUG((DEBUG_INFO, "  DMTFSpecMeasurementValueType - 0x%02x\n", SpdmMeasurementBlockDmtfHeader->dmtf_spec_measurement_value_type));
+  DEBUG((DEBUG_INFO, "  DMTFSpecMeasurementValueSize - 0x%04x\n", SpdmMeasurementBlockDmtfHeader->dmtf_spec_measurement_value_size));
   DEBUG((DEBUG_INFO, "Measurement - "));
   InternalDumpData (Digest, DigestSize);
   DEBUG((DEBUG_INFO, "\n"));
   if (MeasurementRecordLength <= sizeof(SPDM_MEASUREMENT_BLOCK_COMMON_HEADER) + sizeof(SPDM_MEASUREMENT_BLOCK_DMTF_HEADER)) {
     return EFI_SECURITY_VIOLATION;
   }
-  if ((SpdmMeasurementBlockCommonHeader->MeasurementSpecification & SPDM_MEASUREMENT_BLOCK_HEADER_SPECIFICATION_DMTF) == 0) {
+  if ((SpdmMeasurementBlockCommonHeader->measurement_specification & SPDM_MEASUREMENT_BLOCK_HEADER_SPECIFICATION_DMTF) == 0) {
     return EFI_SECURITY_VIOLATION;
   }
-  if (SpdmMeasurementBlockCommonHeader->MeasurementSize != MeasurementRecordLength - sizeof(SPDM_MEASUREMENT_BLOCK_COMMON_HEADER)) {
+  if (SpdmMeasurementBlockCommonHeader->measurement_size != MeasurementRecordLength - sizeof(SPDM_MEASUREMENT_BLOCK_COMMON_HEADER)) {
     return EFI_SECURITY_VIOLATION;
   }
-  if (SpdmMeasurementBlockDmtfHeader->DMTFSpecMeasurementValueSize != SpdmMeasurementBlockCommonHeader->MeasurementSize - sizeof(SPDM_MEASUREMENT_BLOCK_DMTF_HEADER)) {
+  if (SpdmMeasurementBlockDmtfHeader->dmtf_spec_measurement_value_size != SpdmMeasurementBlockCommonHeader->measurement_size - sizeof(SPDM_MEASUREMENT_BLOCK_DMTF_HEADER)) {
     return EFI_SECURITY_VIOLATION;
   }
 
   //
   // Use PCR 2 for Firmware Blob code.
   //
-  switch (SpdmMeasurementBlockDmtfHeader->DMTFSpecMeasurementValueType & 0x7F) {
+  switch (SpdmMeasurementBlockDmtfHeader->dmtf_spec_measurement_value_type & 0x7F) {
   case SPDM_MEASUREMENT_BLOCK_MEASUREMENT_TYPE_IMMUTABLE_ROM:
   case SPDM_MEASUREMENT_BLOCK_MEASUREMENT_TYPE_MUTABLE_FIRMWARE:
     PcrIndex = 2;

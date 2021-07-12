@@ -15,7 +15,7 @@
 #include <Library/MemoryAllocationLib.h>
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/DevicePathLib.h>
-#include <Library/SpdmLibConfig.h>
+#include <library/spdm_lib_config.h>
 #include <Library/UefiLib.h>
 #include <IndustryStandard/PcieDoeCapbility.h>
 #include <Guid/DeviceAuthentication.h>
@@ -859,12 +859,12 @@ MainEntryPoint (
     CertChainSize = SignatureList->SignatureSize - sizeof(EFI_GUID);
 
     ZeroMem (&Parameter, sizeof(Parameter));
-    Parameter.Location = SpdmDataLocationLocal;
+    Parameter.location = SpdmDataLocationLocal;
     Data8 = SLOT_NUMBER;
     SpdmSetData (SpdmContext, SpdmDataLocalSlotCount, &Parameter, &Data8, sizeof(Data8));
 
     for (Index = 0; Index < SLOT_NUMBER; Index++) {
-      Parameter.AdditionalData[0] = Index;
+      Parameter.additional_data[0] = Index;
       SpdmSetData (SpdmContext, SpdmDataLocalPublicCertChain, &Parameter, CertChain, CertChainSize);
     }
     // do not free it

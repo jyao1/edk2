@@ -16,8 +16,8 @@
 #include <Library/BaseCryptLib.h>
 #include <Guid/DeviceAuthentication.h>
 #include <Guid/ImageAuthentication.h>
-#include <IndustryStandard/Spdm.h>
-
+#include <library/LibspdmStub.h>
+#include <industry_standard/spdm.h>
 #define SHA256_HASH_SIZE  32
 
 extern UINT8 TestRootCer[];
@@ -50,8 +50,8 @@ MainEntryPoint (
   CertChainSize = sizeof(SPDM_CERT_CHAIN) + SHA256_HASH_SIZE + TestRootCerSize;
   CertChain = AllocateZeroPool (CertChainSize);
   ASSERT (CertChain != NULL);
-  CertChain->Length = (UINT16)CertChainSize;
-  CertChain->Reserved = 0;
+  CertChain->length = (UINT16)CertChainSize;
+  CertChain->reserved = 0;
   Sha256HashAll (TestRootCer, TestRootCerSize, (VOID *)(CertChain + 1));
   CopyMem (
     (UINT8 *)CertChain + sizeof(SPDM_CERT_CHAIN) + SHA256_HASH_SIZE,

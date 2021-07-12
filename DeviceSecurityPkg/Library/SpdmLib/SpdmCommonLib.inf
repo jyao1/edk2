@@ -22,13 +22,13 @@
 #
 
 [Sources]
-  openspdm/Library/SpdmCommonLib/SpdmCommonLibContextData.c
-  openspdm/Library/SpdmCommonLib/SpdmCommonLibContextDataSession.c
-  openspdm/Library/SpdmCommonLib/SpdmCommonLibCryptoService.c
-  openspdm/Library/SpdmCommonLib/SpdmCommonLibCryptoServiceSession.c
-  openspdm/Library/SpdmCommonLib/SpdmCommonLibInternal.h
-  openspdm/Library/SpdmCommonLib/SpdmCommonLibOpaqueData.c
-  openspdm/Library/SpdmCommonLib/SpdmCommonLibSupport.c
+  libspdm/library/spdm_common_lib/context_data.c
+  libspdm/library/spdm_common_lib/context_data_session.c
+  libspdm/library/spdm_common_lib/crypto_service.c
+  libspdm/library/spdm_common_lib/crypto_service_session.c
+  libspdm/library/spdm_common_lib/spdm_common_lib_internal.h
+  libspdm/library/spdm_common_lib/opaque_data.c
+  libspdm/library/spdm_common_lib/support.c
 
 [Packages]
   MdePkg/MdePkg.dec

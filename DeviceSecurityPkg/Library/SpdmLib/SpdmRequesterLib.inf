@@ -22,31 +22,31 @@
 #
 
 [Sources]
-  openspdm/Library/SpdmCommonLib/SpdmCommonLibInternal.h
-  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibChallenge.c
-  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibCommunication.c
-  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibEncapCertificate.c
-  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibEncapChallengeAuth.c
-  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibEncapDigest.c
-  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibEncapError.c
-  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibEncapKeyUpdate.c
-  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibEncapRequest.c
-  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibEndSession.c
-  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibFinish.c
-  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibGetCapability.c
-  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibGetCertificate.c
-  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibGetDigest.c
-  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibGetMeasurement.c
-  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibGetVersion.c
-  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibHandleErrorResponse.c
-  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibHeartbeat.c
-  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibInternal.h
-  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibKeyExchange.c
-  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibKeyUpdate.c
-  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibNegotiateAlgorithm.c
-  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibPskExchange.c
-  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibPskFinish.c
-  openspdm/Library/SpdmRequesterLib/SpdmRequesterLibSendReceive.c
+  libspdm/library/spdm_common_lib/spdm_common_lib_internal.h
+  libspdm/library/spdm_requester_lib/challenge.c
+  libspdm/library/spdm_requester_lib/communication.c
+  libspdm/library/spdm_requester_lib/encap_certificate.c
+  libspdm/library/spdm_requester_lib/encap_challenge_auth.c
+  libspdm/library/spdm_requester_lib/encap_digests.c
+  libspdm/library/spdm_requester_lib/encap_error.c
+  libspdm/library/spdm_requester_lib/encap_key_update.c
+  libspdm/library/spdm_requester_lib/encap_request.c
+  libspdm/library/spdm_requester_lib/end_session.c
+  libspdm/library/spdm_requester_lib/finish.c
+  libspdm/library/spdm_requester_lib/get_capabilities.c
+  libspdm/library/spdm_requester_lib/get_certificate.c
+  libspdm/library/spdm_requester_lib/get_digests.c
+  libspdm/library/spdm_requester_lib/get_measurements.c
+  libspdm/library/spdm_requester_lib/get_version.c
+  libspdm/library/spdm_requester_lib/handle_error_response.c
+  libspdm/library/spdm_requester_lib/heartbeat.c
+  libspdm/library/spdm_requester_lib/spdm_requester_lib_internal.h
+  libspdm/library/spdm_requester_lib/key_exchange.c
+  libspdm/library/spdm_requester_lib/key_update.c
+  libspdm/library/spdm_requester_lib/negotiate_algorithms.c
+  libspdm/library/spdm_requester_lib/psk_exchange.c
+  libspdm/library/spdm_requester_lib/psk_finish.c
+  libspdm/library/spdm_requester_lib/send_receive.c
 
 [Packages]
   MdePkg/MdePkg.dec
