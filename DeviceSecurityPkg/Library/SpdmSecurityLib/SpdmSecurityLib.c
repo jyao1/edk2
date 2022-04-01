@@ -30,12 +30,17 @@ SpdmDeviceAuthenticationAndMeasurement (
     return EFI_UNSUPPORTED;
   }
 
-  Status = DoDeviceAuthentication (SpdmDeviceContext);
 
-  Status = DoDeviceMeasurement (SpdmDeviceContext);
+  if ((SecuriryPolicy->AuthenticationPolicy & EDKII_DEVICE_AUTHENTICATION_REQUIRED) != 0) {
+    Status = DoDeviceAuthentication (SpdmDeviceContext);
+  }
 
-  DestroySpdmDeviceContext (SpdmDeviceContext);
+  if ((SecuriryPolicy->MeasurementPolicy & EDKII_DEVICE_MEASUREMENT_REQUIRED) != 0) {
+    Status = DoDeviceMeasurement (SpdmDeviceContext);
+  }
 
-  return Status;
+  DestroySpdmDeviceContext (SpdmDeviceContext);;
+
+  return EFI_SUCCESS;
 }
 

@@ -18,8 +18,6 @@
 [Sources]
   SpdmDeviceSecurityDxe.h
   SpdmDeviceSecurityDxe.c
-  SpdmDeviceMeasurement.c
-  SpdmDeviceAuthentication.c
   SpdmCommunication.c
   SpdmDeviceIo.c
 
@@ -46,6 +44,7 @@
   SpdmRequesterLib
   SpdmTransportMctpLib
   SpdmTransportPciDoeLib
+  SpdmMeasurementLib
   LibspdmCryptlibStub
 
 [Guids]

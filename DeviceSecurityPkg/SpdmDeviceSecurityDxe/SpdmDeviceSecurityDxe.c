@@ -8,6 +8,7 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 **/
 
 #include "SpdmDeviceSecurityDxe.h"
+#include "library/SpdmSecurityLib.h"
 
 LIST_ENTRY mSpdmDeviceList = INITIALIZE_LIST_HEAD_VARIABLE(mSpdmDeviceList);
 
@@ -17,6 +18,7 @@ BOOLEAN mSendReceiveBufferAcquired = FALSE;
 UINT8 mSendReceiveBuffer[LIBSPDM_MAX_MESSAGE_BUFFER_SIZE];
 UINTN mSendReceiveBufferSize;
 VOID *mScratchBuffer;
+SPDM_IO_PROTOCOL *mSpdmIoProtocol;
 
 /**
   Compare two device paths to check if they are exactly same.
@@ -508,19 +510,34 @@ DeviceAuthentication (
 {
   EDKII_DEVICE_SECURITY_POLICY           DeviceSecurityPolicy;
   EDKII_DEVICE_SECURITY_STATE            DeviceSecurityState;
-  SPDM_DRIVER_DEVICE_CONTEXT             *SpdmDriverContext;
   EFI_STATUS                             Status;
+  EDKII_SPDM_DEVICE_INFO                 SpdmDeviceInfo;
 
   if (mDeviceSecurityPolicy == NULL) {
     return EFI_SUCCESS;
   }
 
-  SpdmDriverContext = GetSpdmDriverContextViaDeviceId (DeviceId);
-  if (SpdmDriverContext == NULL) {
-    SpdmDriverContext = CreateSpdmDriverContext (DeviceId);
-  }
-  if (SpdmDriverContext == NULL) {
-    return EFI_UNSUPPORTED;
+  ZeroMem (&SpdmDeviceInfo, sizeof(SpdmDeviceInfo));
+  SpdmDeviceInfo.DeviceId = DeviceId;
+  SpdmDeviceInfo.SendMessage = SpdmDeviceSendMessage;
+  SpdmDeviceInfo.ReceiveMessage = SpdmDeviceReceiveMessage;
+  SpdmDeviceInfo.TransportEncodeMessage = SpdmTransportPciDoeEncodeMessage;
+  SpdmDeviceInfo.TransportDecodeMessage = SpdmTransportPciDoeDecodeMessage;
+  SpdmDeviceInfo.TransportGetHeaderSize = SpdmTransportPciDoeGetHeaderSize;
+
+  SpdmDeviceInfo.AcquireSenderBuffer = SpdmDeviceAcquireSenderBuffer;
+  SpdmDeviceInfo.ReleaseSenderBuffer = SpdmDeviceReleaseSenderBuffer;
+  SpdmDeviceInfo.AcquireReceiverBuffer = SpdmDeviceAcquireReceiverBuffer;
+  SpdmDeviceInfo.ReleaseReceiverBuffer = SpdmDeviceReleaseReceiverBuffer;
+
+  Status = gBS->HandleProtocol (
+                  DeviceId->DeviceHandle,
+                  &gSpdmIoProtocolGuid,
+                  (VOID **)&mSpdmIoProtocol
+                  );
+  if (EFI_ERROR(Status)) {
+    DEBUG ((DEBUG_ERROR, "Locate - SpdmIoProtocol - %r\n", Status));
+    return Status;
   }
 
   DeviceSecurityState.Revision = EDKII_DEVICE_SECURITY_STATE_REVISION;
@@ -533,14 +550,7 @@ DeviceAuthentication (
     DeviceSecurityState.MeasurementState = EDKII_DEVICE_SECURITY_STATE_ERROR_UEFI_GET_POLICY_PROTOCOL;
     DeviceSecurityState.AuthenticationState = EDKII_DEVICE_SECURITY_STATE_ERROR_UEFI_GET_POLICY_PROTOCOL;
   } else {
-    if ((DeviceSecurityPolicy.AuthenticationPolicy & EDKII_DEVICE_AUTHENTICATION_REQUIRED) != 0) {
-      DoDeviceAuthentication (SpdmDriverContext, &DeviceSecurityState);
-      DEBUG((DEBUG_ERROR, "AuthenticationState - 0x%08x\n", DeviceSecurityState.AuthenticationState));
-    }
-    if ((DeviceSecurityPolicy.MeasurementPolicy & EDKII_DEVICE_MEASUREMENT_REQUIRED) != 0) {
-      DoDeviceMeasurement (SpdmDriverContext, &DeviceSecurityState);
-      DEBUG((DEBUG_ERROR, "MeasurementState - 0x%08x\n", DeviceSecurityState.MeasurementState));
-    }
+    Status = SpdmDeviceAuthenticationAndMeasurement (&SpdmDeviceInfo, &DeviceSecurityPolicy, &DeviceSecurityState);
   }
 
   Status = mDeviceSecurityPolicy->NotifyDeviceState (mDeviceSecurityPolicy, DeviceId, &DeviceSecurityState);

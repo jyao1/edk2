@@ -106,6 +106,7 @@ DEFINE CRYPT_LIB = OPENSSL
   SpdmSecuredMessageLib|DeviceSecurityPkg/Library/SpdmLib/SpdmSecuredMessageLib.inf
   SpdmTransportMctpLib|DeviceSecurityPkg/Library/SpdmLib/SpdmTransportMctpLib.inf
   SpdmTransportPciDoeLib|DeviceSecurityPkg/Library/SpdmLib/SpdmTransportPciDoeLib.inf
+  SpdmMeasurementLib|DeviceSecurityPkg/Library/SpdmSecurityLib/SpdmSecurityLib.inf
 
   LibspdmCryptlibStub|DeviceSecurityPkg/Library/LibspdmCryptlibStub/LibspdmCryptlibStub.inf
 [LibraryClasses.ARM]
@@ -237,8 +238,6 @@ DEFINE CRYPT_LIB = OPENSSL
 ###################################################################################################
 
 [Components]
-  DeviceSecurityPkg/Library/SpdmSecurityLib/SpdmSecurityLib.inf
-
   DeviceSecurityPkg/SpdmDeviceSecurityDxe/SpdmDeviceSecurityDxe.inf
   DeviceSecurityPkg/Test/DeviceSecurityPolicyStub/DeviceSecurityPolicyStub.inf
   DeviceSecurityPkg/Test/Tcg2Stub/Tcg2Stub.inf {

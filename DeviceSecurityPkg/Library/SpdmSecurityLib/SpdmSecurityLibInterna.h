@@ -59,7 +59,7 @@ CreateSpdmDeviceContext (
   IN EDKII_SPDM_DEVICE_INFO         *SpdmDeviceInfo
   );
 
-SPDM_DEVICE_CONTEXT *
+VOID
 DestroySpdmDeviceContext (
   IN SPDM_DEVICE_CONTEXT         *SpdmDeviceContext
   );

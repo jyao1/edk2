@@ -102,7 +102,6 @@ typedef struct {
   //
   UINT32                                          BaseHashAlgo;
   UINT32                                          BaseAsymAlgo;
-
 } EDKII_SPDM_DEVICE_INFO;
 
 /*

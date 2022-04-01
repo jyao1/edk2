@@ -159,7 +159,7 @@ Error:
   return NULL;
 }
 
-SPDM_DEVICE_CONTEXT *
+VOID
 DestroySpdmDeviceContext (
   IN SPDM_DEVICE_CONTEXT         *SpdmDeviceContext
   )
