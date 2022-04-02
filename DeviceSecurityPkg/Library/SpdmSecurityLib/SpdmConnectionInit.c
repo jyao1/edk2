@@ -9,6 +9,53 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 
 #include "SpdmSecurityLibInterna.h"
 
+LIST_ENTRY mSpdmDeviceContextList = INITIALIZE_LIST_HEAD_VARIABLE(mSpdmDeviceContextList);
+
+VOID
+RecordSpdmDeviceContextInList (
+  IN SPDM_DEVICE_CONTEXT          *SpdmDeviceContext
+  )
+{
+  SPDM_DEVICE_CONTEXT_INSTANCE  *NewSpdmDeviceContext;
+  LIST_ENTRY                    *SpdmDeviceContextList;
+
+  SpdmDeviceContextList = &mSpdmDeviceContextList;
+
+  NewSpdmDeviceContext = AllocateZeroPool(sizeof(*NewSpdmDeviceContext));
+  ASSERT(NewSpdmDeviceContext != NULL);
+
+  NewSpdmDeviceContext->Signature = SPDM_DEVICE_CONTEXT_INSTANCE_SIGNATURE;
+  NewSpdmDeviceContext->SpdmDeviceContext = SpdmDeviceContext;
+
+  InsertTailList(SpdmDeviceContextList, &NewSpdmDeviceContext->Link);
+}
+
+
+VOID *
+GetSpdmIoProtocolViaSpdmContext (
+  IN VOID *SpdmContext
+  )
+{
+  LIST_ENTRY                    *Link;
+  SPDM_DEVICE_CONTEXT_INSTANCE  *CurrentSpdmDeviceContext;
+  LIST_ENTRY                    *SpdmDeviceContextList;
+
+  SpdmDeviceContextList = &mSpdmDeviceContextList;
+
+  Link = GetFirstNode(SpdmDeviceContextList);
+  while (!IsNull(SpdmDeviceContextList, Link)) {
+    CurrentSpdmDeviceContext = SPDM_DEVICE_CONTEXT_INSTANCE_FROM_LINK(Link);
+
+    if (CurrentSpdmDeviceContext->SpdmDeviceContext->SpdmContext == SpdmContext) {
+      return CurrentSpdmDeviceContext->SpdmDeviceContext->SpdmIoProtocol;
+    }
+
+    Link = GetNextNode(SpdmDeviceContextList, Link);
+  }
+
+  return NULL;
+}
+
 SPDM_DEVICE_CONTEXT *
 CreateSpdmDeviceContext (
   IN EDKII_SPDM_DEVICE_INFO         *SpdmDeviceInfo
@@ -83,6 +130,18 @@ CreateSpdmDeviceContext (
     // This is optional, only check known device type later.
   }
 
+  if (SpdmDeviceInfo->SpdmIoProtocolGuid != NULL) {
+    Status = gBS->HandleProtocol (
+                    SpdmDeviceContext->DeviceId.DeviceHandle,
+                    SpdmDeviceInfo->SpdmIoProtocolGuid,
+                    (VOID **)&SpdmDeviceContext->SpdmIoProtocol
+                    );
+    if (EFI_ERROR(Status)) {
+      DEBUG ((DEBUG_ERROR, "Locate - SpdmIoProtocol - %r\n", Status));
+      goto Error;
+    }
+  }
+
   if (CompareGuid (&SpdmDeviceContext->DeviceId.DeviceType, &gEdkiiDeviceIdentifierTypePciGuid)) {
     if (SpdmDeviceContext->DeviceIo == NULL) {
       DEBUG ((DEBUG_ERROR, "Locate - PciIo - %r\n", Status));
@@ -92,6 +151,8 @@ CreateSpdmDeviceContext (
 
 #define SPDM_UID  1 // TBD - hardcoded
   SpdmDeviceContext->DeviceUID = SPDM_UID;
+
+  RecordSpdmDeviceContextInList (SpdmDeviceContext);
 
   Status = GetVariable2 (
              EDKII_DEVICE_SECURITY_DATABASE,

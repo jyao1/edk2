@@ -18,7 +18,6 @@ BOOLEAN mSendReceiveBufferAcquired = FALSE;
 UINT8 mSendReceiveBuffer[LIBSPDM_MAX_MESSAGE_BUFFER_SIZE];
 UINTN mSendReceiveBufferSize;
 VOID *mScratchBuffer;
-SPDM_IO_PROTOCOL *mSpdmIoProtocol;
 
 /**
   Compare two device paths to check if they are exactly same.
@@ -462,6 +461,42 @@ Error:
   return NULL;
 }
 
+RETURN_STATUS
+EFIAPI
+SpdmIoProtocolDeviceSendMessage (
+  IN     VOID                                   *SpdmContext,
+  IN     UINTN                                  MessageSize,
+  IN     CONST VOID                             *Message,
+  IN     UINT64                                 Timeout
+  )
+{
+  SPDM_IO_PROTOCOL *SpdmIoProtocol;
+
+  SpdmIoProtocol = SpdmGetIoProtocolViaSpdmContext (SpdmContext);
+  if (SpdmIoProtocol == NULL) {
+    return RETURN_NOT_FOUND;
+  }
+  return SpdmIoProtocol->SendMessage (SpdmIoProtocol, MessageSize, Message, Timeout);
+}
+
+RETURN_STATUS
+EFIAPI
+SpdmIoProtocolDeviceReceiveMessage (
+  IN     VOID                                   *SpdmContext,
+  IN OUT UINTN                                  *MessageSize,
+  IN OUT VOID                                   **Message,
+  IN     UINT64                                 Timeout
+  )
+{
+  SPDM_IO_PROTOCOL *SpdmIoProtocol;
+
+  SpdmIoProtocol = SpdmGetIoProtocolViaSpdmContext (SpdmContext);
+  if (SpdmIoProtocol == NULL) {
+    return RETURN_NOT_FOUND;
+  }
+  return SpdmIoProtocol->ReceiveMessage (SpdmIoProtocol, MessageSize, Message, Timeout);
+}
+
 /**
   The device driver uses this service to measure and/or verify a device.
 
@@ -519,8 +554,8 @@ DeviceAuthentication (
 
   ZeroMem (&SpdmDeviceInfo, sizeof(SpdmDeviceInfo));
   SpdmDeviceInfo.DeviceId = DeviceId;
-  SpdmDeviceInfo.SendMessage = SpdmDeviceSendMessage;
-  SpdmDeviceInfo.ReceiveMessage = SpdmDeviceReceiveMessage;
+  SpdmDeviceInfo.SendMessage = SpdmIoProtocolDeviceSendMessage;
+  SpdmDeviceInfo.ReceiveMessage = SpdmIoProtocolDeviceReceiveMessage;
   SpdmDeviceInfo.TransportEncodeMessage = SpdmTransportPciDoeEncodeMessage;
   SpdmDeviceInfo.TransportDecodeMessage = SpdmTransportPciDoeDecodeMessage;
   SpdmDeviceInfo.TransportGetHeaderSize = SpdmTransportPciDoeGetHeaderSize;
@@ -530,15 +565,7 @@ DeviceAuthentication (
   SpdmDeviceInfo.AcquireReceiverBuffer = SpdmDeviceAcquireReceiverBuffer;
   SpdmDeviceInfo.ReleaseReceiverBuffer = SpdmDeviceReleaseReceiverBuffer;
 
-  Status = gBS->HandleProtocol (
-                  DeviceId->DeviceHandle,
-                  &gSpdmIoProtocolGuid,
-                  (VOID **)&mSpdmIoProtocol
-                  );
-  if (EFI_ERROR(Status)) {
-    DEBUG ((DEBUG_ERROR, "Locate - SpdmIoProtocol - %r\n", Status));
-    return Status;
-  }
+  SpdmDeviceInfo.SpdmIoProtocolGuid = &gSpdmIoProtocolGuid;
 
   DeviceSecurityState.Revision = EDKII_DEVICE_SECURITY_STATE_REVISION;
   DeviceSecurityState.MeasurementState = 0x0;

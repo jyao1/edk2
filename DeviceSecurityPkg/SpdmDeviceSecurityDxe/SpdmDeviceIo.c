@@ -9,8 +9,6 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 
 #include "SpdmDeviceSecurityDxe.h"
 
-extern SPDM_IO_PROTOCOL                   *mSpdmIoProtocol;
-
 RETURN_STATUS
 EFIAPI
 SpdmDeviceSendMessage (
@@ -20,10 +18,16 @@ SpdmDeviceSendMessage (
   IN     UINT64                                 Timeout
   )
 {
-  if (mSpdmIoProtocol == NULL) {
+  SPDM_DRIVER_DEVICE_CONTEXT *SpdmDriverContext;
+  SPDM_IO_PROTOCOL           *SpdmIo;
+
+  SpdmDriverContext = GetSpdmDriverContextViaSpdmContext (SpdmContext);
+  ASSERT (SpdmDriverContext != NULL);
+  SpdmIo = SpdmDriverContext->SpdmIoProtocol;
+  if (SpdmIo == NULL) {
     return RETURN_NOT_FOUND;
   }
-  return mSpdmIoProtocol->SendMessage (mSpdmIoProtocol, MessageSize, Message, Timeout);
+  return SpdmIo->SendMessage (SpdmIo, MessageSize, Message, Timeout);
 }
 
 RETURN_STATUS
@@ -35,8 +39,14 @@ SpdmDeviceReceiveMessage (
   IN     UINT64                                 Timeout
   )
 {
-  if (mSpdmIoProtocol == NULL) {
+  SPDM_DRIVER_DEVICE_CONTEXT *SpdmDriverContext;
+  SPDM_IO_PROTOCOL           *SpdmIo;
+
+  SpdmDriverContext = GetSpdmDriverContextViaSpdmContext (SpdmContext);
+  ASSERT (SpdmDriverContext != NULL);
+  SpdmIo = SpdmDriverContext->SpdmIoProtocol;
+  if (SpdmIo == NULL) {
     return RETURN_NOT_FOUND;
   }
-  return mSpdmIoProtocol->ReceiveMessage (mSpdmIoProtocol, MessageSize, Message, Timeout);
+  return SpdmIo->ReceiveMessage (SpdmIo, MessageSize, Message, Timeout);
 }

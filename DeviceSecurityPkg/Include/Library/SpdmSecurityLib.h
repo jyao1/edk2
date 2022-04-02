@@ -102,6 +102,8 @@ typedef struct {
   //
   UINT32                                          BaseHashAlgo;
   UINT32                                          BaseAsymAlgo;
+
+  EFI_GUID                                        *SpdmIoProtocolGuid;
 } EDKII_SPDM_DEVICE_INFO;
 
 /*
@@ -116,4 +118,8 @@ SpdmDeviceAuthenticationAndMeasurement (
   OUT EDKII_DEVICE_SECURITY_STATE    *SecuriryState
   );
 
+VOID *
+SpdmGetIoProtocolViaSpdmContext (
+  IN VOID *SpdmContext
+  );
 #endif

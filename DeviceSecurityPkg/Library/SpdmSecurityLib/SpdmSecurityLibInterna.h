@@ -52,7 +52,22 @@ typedef struct {
   UINTN                                           ScratchBufferSize;
   VOID                                            *ScratchBuffer;
   UINT8                                           SpdmVersion;
+  VOID                                            *SpdmIoProtocol;
 } SPDM_DEVICE_CONTEXT;
+
+typedef struct {
+  UINTN                        Signature;
+  LIST_ENTRY                   Link;
+  SPDM_DEVICE_CONTEXT         *SpdmDeviceContext;
+} SPDM_DEVICE_CONTEXT_INSTANCE;
+
+#define SPDM_DEVICE_CONTEXT_INSTANCE_SIGNATURE  SIGNATURE_32 ('S', 'D', 'C', 'S')
+#define SPDM_DEVICE_CONTEXT_INSTANCE_FROM_LINK(a)  CR (a, SPDM_DEVICE_CONTEXT_INSTANCE, Link, SPDM_DEVICE_CONTEXT_INSTANCE_SIGNATURE)
+
+VOID *
+GetSpdmIoProtocolViaSpdmContext (
+  IN VOID *SpdmContext
+  );
 
 SPDM_DEVICE_CONTEXT *
 CreateSpdmDeviceContext (

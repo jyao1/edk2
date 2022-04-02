@@ -44,3 +44,10 @@ SpdmDeviceAuthenticationAndMeasurement (
   return EFI_SUCCESS;
 }
 
+VOID *
+SpdmGetIoProtocolViaSpdmContext (
+  IN VOID *SpdmContext
+  )
+{
+  return GetSpdmIoProtocolViaSpdmContext(SpdmContext);
+}
