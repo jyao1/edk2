@@ -31,6 +31,32 @@ typedef uintn   return_status;
 #define false   0
 #endif
 
+#define LIBSPDM_MIN(a, b) (((a) < (b)) ? (a) : (b))
+
+#define LIBSPDM_ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
+
+#if defined(_MSC_EXTENSIONS) && _MSC_VER < 1800
+
+/* Remove global variable from the linked image if there are no references to
+ * it after all compiler and linker optimizations have been performed.*/
+
+
+#define LIBSPDM_GLOBAL_REMOVE_IF_UNREFERENCED __declspec(selectany)
+#else
+
+/* Remove the global variable from the linked image if there are no references
+ *  to it after all compiler and linker optimizations have been performed.*/
+
+
+#define LIBSPDM_GLOBAL_REMOVE_IF_UNREFERENCED
+#endif
+
+#if (defined(__GNUC__) && __GNUC__ >= 4) || defined(__clang__)
+#define LIBSPDM_OFFSET_OF(TYPE, field) ((size_t) __builtin_offsetof(TYPE, field))
+#else
+#define LIBSPDM_OFFSET_OF(TYPE, field) ((size_t) &(((TYPE *)0)->field))
+#endif
+
 /*Interface of spdm.h*/
 #define        SPDM_MESSAGE_HEADER        spdm_message_header_t
 #define        SPDM_GET_VERSION_REQUEST        spdm_get_version_request_t
