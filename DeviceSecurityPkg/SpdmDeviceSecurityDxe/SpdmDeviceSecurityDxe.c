@@ -545,6 +545,7 @@ DeviceAuthentication (
 {
   EDKII_DEVICE_SECURITY_POLICY           DeviceSecurityPolicy;
   EDKII_DEVICE_SECURITY_STATE            DeviceSecurityState;
+  SPDM_DRIVER_DEVICE_CONTEXT             *SpdmDriverContext;
   EFI_STATUS                             Status;
   EDKII_SPDM_DEVICE_INFO                 SpdmDeviceInfo;
 
@@ -583,6 +584,14 @@ DeviceAuthentication (
   Status = mDeviceSecurityPolicy->NotifyDeviceState (mDeviceSecurityPolicy, DeviceId, &DeviceSecurityState);
   if (EFI_ERROR(Status)) {
     DEBUG((DEBUG_ERROR, "mDeviceSecurityPolicy->NotifyDeviceState - %r\n", Status));
+  }
+
+  SpdmDriverContext = GetSpdmDriverContextViaDeviceId (DeviceId);
+  if (SpdmDriverContext == NULL) {
+    SpdmDriverContext = CreateSpdmDriverContext (DeviceId);
+  }
+  if (SpdmDriverContext == NULL) {
+    return EFI_UNSUPPORTED;
   }
 
   if ((DeviceSecurityState.MeasurementState == 0) &&

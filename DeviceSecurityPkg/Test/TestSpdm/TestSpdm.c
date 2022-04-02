@@ -300,6 +300,6 @@ MainEntryPoint (
   //CpuBreakpoint();
   TestPci ();
 
-  //TestSpdm ();
+  TestSpdm ();
   return EFI_SUCCESS;
 }
