@@ -211,6 +211,9 @@ LibspdmX509GetExtensionDataStub (
              ExtensionDataSize
            );
 
+  if (Status == RETURN_NOT_FOUND) {
+    *ExtensionDataSize = 0;
+  }
   if (EFI_ERROR (Status)) {
     return FALSE;
   }
