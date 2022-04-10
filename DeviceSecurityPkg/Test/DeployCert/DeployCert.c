@@ -108,13 +108,17 @@ MainEntryPoint (
   EFI_SIGNATURE_DATA  *SignatureData;
   UINTN               SignatureListSize;
   UINTN               SignatureHeaderSize;
-
+  BOOLEAN             Res;
+  UINT8               *RootCert;
+  UINTN               RootCertLen;
   CertChainSize = sizeof(SPDM_CERT_CHAIN) + SHA256_HASH_SIZE + TestRootCerSize;
   CertChain = AllocateZeroPool (CertChainSize);
   ASSERT (CertChain != NULL);
   CertChain->length = (UINT16)CertChainSize;
   CertChain->reserved = 0;
-  Sha256HashAll (TestRootCer, TestRootCerSize, (VOID *)(CertChain + 1));
+  Res = X509GetCertFromCertChain(TestRootCer, TestRootCerSize, 0, &RootCert,
+                                 &RootCertLen);
+  Sha256HashAll (RootCert, RootCertLen, (VOID *)(CertChain + 1));
   CopyMem (
     (UINT8 *)CertChain + sizeof(SPDM_CERT_CHAIN) + SHA256_HASH_SIZE,
     TestRootCer,
