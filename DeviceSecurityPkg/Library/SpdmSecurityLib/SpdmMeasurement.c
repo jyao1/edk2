@@ -376,21 +376,23 @@ DoDeviceMeasurement (
   IN  SPDM_DEVICE_CONTEXT         *SpdmDeviceContext
   )
 {
-  EFI_STATUS            Status;
-  VOID                  *SpdmContext;
-  UINT32                CapabilityFlags;
-  UINTN                 DataSize;
-  SPDM_DATA_PARAMETER   Parameter;
-  UINT8                 NumberOfBlocks;
-  UINT8                 NumberOfBlock;
-  UINT32                MeasurementRecordLength;
-  UINT8                 MeasurementRecord[LIBSPDM_MAX_MEASUREMENT_RECORD_SIZE];
-  UINT8                 Index;
-  UINT8                 ReceivedNumberOfBlock;
-  UINT8                 RequesterNonceIn[SPDM_NONCE_SIZE];
-  UINT8                 RequesterNonce[SPDM_NONCE_SIZE];
-  UINT8                 ResponderNonce[SPDM_NONCE_SIZE];
-  UINT8                 RequestAttribute;
+  EFI_STATUS                    Status;
+  VOID                          *SpdmContext;
+  UINT32                        CapabilityFlags;
+  UINTN                         DataSize;
+  SPDM_DATA_PARAMETER           Parameter;
+  UINT8                         NumberOfBlocks;
+  UINT32                        MeasurementRecordLength;
+  UINT8                         MeasurementRecord[LIBSPDM_MAX_MEASUREMENT_RECORD_SIZE];
+  UINT8                         Index;
+  UINT8                         RequesterNonceIn[SPDM_NONCE_SIZE];
+  UINT8                         RequesterNonce[SPDM_NONCE_SIZE];
+  UINT8                         ResponderNonce[SPDM_NONCE_SIZE];
+  UINT8                         RequestAttribute;
+  UINT32                        MeasurementsBlockSize;
+  SPDM_MEASUREMENT_BLOCK_DMTF   *MeasurementBlock;
+  UINT8                         NumberOfBlock;
+  UINT8                         ReceivedNumberOfBlock;
 
   SpdmContext = SpdmDeviceContext->SpdmContext;
 
@@ -403,74 +405,114 @@ DoDeviceMeasurement (
     return EFI_UNSUPPORTED;
   }
 
-  RequestAttribute = 0;
-  //
-  // TBD: get all measurement once, with signature.
-  //
+  RequestAttribute = SPDM_GET_MEASUREMENTS_REQUEST_ATTRIBUTES_GENERATE_SIGNATURE;
 
-  //
-  // 1. Query the total number of measurements available.
-  //
-  Status = SpdmGetMeasurement (
+  MeasurementRecordLength = sizeof (MeasurementRecord);
+  ZeroMem (RequesterNonceIn, sizeof(RequesterNonceIn));
+  ZeroMem (RequesterNonce, sizeof(RequesterNonce));
+  ZeroMem (ResponderNonce, sizeof(ResponderNonce));
+
+  Status = SpdmGetMeasurementEx (
              SpdmContext,
              NULL,
              RequestAttribute,
-             SPDM_GET_MEASUREMENTS_REQUEST_MEASUREMENT_OPERATION_TOTAL_NUMBER_OF_MEASUREMENTS,
+             SPDM_GET_MEASUREMENTS_REQUEST_MEASUREMENT_OPERATION_ALL_MEASUREMENTS,
              0,
              NULL,
              &NumberOfBlocks,
-             NULL,
-             NULL
+             &MeasurementRecordLength,
+             MeasurementRecord,
+             RequesterNonceIn,
+             RequesterNonce,
+             ResponderNonce
              );
-  if (EFI_ERROR(Status)) {
-    return Status;
-  }
-  DEBUG((DEBUG_INFO, "NumberOfBlocks - 0x%x\n", NumberOfBlocks));
+  if (!EFI_ERROR(Status)) {
+    DEBUG((DEBUG_INFO, "NumberOfBlocks %d\n", NumberOfBlocks));
 
-  ReceivedNumberOfBlock = 0;
-  for (Index = 1; Index <= 0xFE; Index++) {
-    if (ReceivedNumberOfBlock == NumberOfBlocks) {
-      break;
+    MeasurementBlock = (VOID *)MeasurementRecord;
+    for (Index = 0; Index < NumberOfBlocks; Index++) {
+      MeasurementsBlockSize =
+        sizeof(spdm_measurement_block_dmtf_t) +
+        MeasurementBlock
+          ->measurement_block_dmtf_header
+          .dmtf_spec_measurement_value_size;
+
+      Status = ExtendMeasurement (SpdmDeviceContext, MeasurementsBlockSize, (UINT8 *)MeasurementBlock, RequesterNonce, ResponderNonce);
+      MeasurementBlock = (VOID *) ((size_t)MeasurementBlock + MeasurementsBlockSize);
+      if (Status != EFI_SUCCESS) {
+	    return Status;
+      }
     }
-    DEBUG((DEBUG_INFO, "Index - 0x%x\n", Index));
+  } else {
+    RequestAttribute = 0;
     //
-    // 2. query measurement one by one
-    // TBD get signature in last message only.
+    // TBD: get all measurement once, with signature.
     //
-    if (ReceivedNumberOfBlock == NumberOfBlocks - 1) {
-      RequestAttribute = RequestAttribute |
-                         SPDM_GET_MEASUREMENTS_REQUEST_ATTRIBUTES_GENERATE_SIGNATURE;
-    }
-    MeasurementRecordLength = sizeof(MeasurementRecord);
-    ZeroMem (RequesterNonceIn, sizeof(RequesterNonceIn));
-    ZeroMem (RequesterNonce, sizeof(RequesterNonce));
-    ZeroMem (ResponderNonce, sizeof(ResponderNonce));
-    Status = SpdmGetMeasurementEx (
-              SpdmContext,
-              NULL,
-              RequestAttribute,
-              Index,
-              0,
-              NULL,
-              &NumberOfBlock,
-              &MeasurementRecordLength,
-              MeasurementRecord,
-              RequesterNonceIn,
-              RequesterNonce,
-              ResponderNonce
-              );
+
+    //
+    // 1. Query the total number of measurements available.
+    //
+    Status = SpdmGetMeasurement (
+               SpdmContext,
+               NULL,
+               RequestAttribute,
+               SPDM_GET_MEASUREMENTS_REQUEST_MEASUREMENT_OPERATION_TOTAL_NUMBER_OF_MEASUREMENTS,
+               0,
+               NULL,
+               &NumberOfBlocks,
+               NULL,
+               NULL
+               );
     if (EFI_ERROR(Status)) {
-      continue;
-    }
-    ReceivedNumberOfBlock += 1;
-    DEBUG((DEBUG_INFO, "ExtendMeasurement...\n", ExtendMeasurement));
-    Status = ExtendMeasurement (SpdmDeviceContext, MeasurementRecordLength, MeasurementRecord, RequesterNonce, ResponderNonce);
-    if (Status != EFI_SUCCESS) {
       return Status;
     }
-  }
-  if (ReceivedNumberOfBlock != NumberOfBlocks) {
-	  return EFI_DEVICE_ERROR;
+    DEBUG((DEBUG_INFO, "NumberOfBlocks - 0x%x\n", NumberOfBlocks));
+
+    ReceivedNumberOfBlock = 0;
+    for (Index = 1; Index <= 0xFE; Index++) {
+      if (ReceivedNumberOfBlock == NumberOfBlocks) {
+        break;
+      }
+      DEBUG((DEBUG_INFO, "Index - 0x%x\n", Index));
+      //
+      // 2. query measurement one by one
+      // TBD get signature in last message only.
+      //
+      if (ReceivedNumberOfBlock == NumberOfBlocks - 1) {
+        RequestAttribute = RequestAttribute |
+                           SPDM_GET_MEASUREMENTS_REQUEST_ATTRIBUTES_GENERATE_SIGNATURE;
+      }
+      MeasurementRecordLength = sizeof(MeasurementRecord);
+      ZeroMem (RequesterNonceIn, sizeof(RequesterNonceIn));
+      ZeroMem (RequesterNonce, sizeof(RequesterNonce));
+      ZeroMem (ResponderNonce, sizeof(ResponderNonce));
+      Status = SpdmGetMeasurementEx (
+                SpdmContext,
+                NULL,
+                RequestAttribute,
+                Index,
+                0,
+                NULL,
+                &NumberOfBlock,
+                &MeasurementRecordLength,
+                MeasurementRecord,
+                RequesterNonceIn,
+                RequesterNonce,
+                ResponderNonce
+                );
+      if (EFI_ERROR(Status)) {
+        continue;
+      }
+      ReceivedNumberOfBlock += 1;
+      DEBUG((DEBUG_INFO, "ExtendMeasurement...\n"));
+      Status = ExtendMeasurement (SpdmDeviceContext, MeasurementRecordLength, MeasurementRecord, RequesterNonce, ResponderNonce);
+      if (Status != EFI_SUCCESS) {
+        return Status;
+      }
+    }
+    if (ReceivedNumberOfBlock != NumberOfBlocks) {
+	    return EFI_DEVICE_ERROR;
+    }
   }
 
   {
