@@ -21,6 +21,9 @@
 #include <Guid/ImageAuthentication.h>
 #include <hal/library/LibspdmStub.h>
 #include <industry_standard/spdm.h>
+#include <IndustryStandard/TcgSpdm.h>
+#include <Library/Tpm2CommandLib.h>
+
 #define SHA256_HASH_SIZE  32
 
 extern UINT8 TestRootCer[];
@@ -91,6 +94,146 @@ MeasureVariable (
              VarLogSize
              );
   FreePool (VarLog);
+  return Status;
+}
+
+EFI_STATUS
+EFIAPI
+DeleteNvIndex(
+  UINT32 Index
+  )
+{
+  EFI_STATUS Status;
+
+  Status = Tpm2NvUndefineSpace (TPM_RH_OWNER, Index, NULL);
+  if (EFI_ERROR(Status)) {
+    DEBUG ((DEBUG_ERROR, "Delete TPM NV index failed, Index: %x, Status: %r\n", Index, Status));
+  }
+
+  return Status;
+}
+
+
+EFI_STATUS
+EFIAPI
+CreateNvIndex (
+  TPMI_RH_NV_INDEX  NvIndex,
+  TPMI_ALG_HASH     HashAlg
+  )
+{
+  EFI_STATUS          Status;
+  TPMI_RH_PROVISION   AuthHandle;
+  TPM2B_NV_PUBLIC     PublicInfo;
+  TPM2B_AUTH          NullAuth;
+  TPM2B_NAME	      PubName;
+  UINT16              DataSize;
+
+  Status = Tpm2NvReadPublic (NvIndex, &PublicInfo, &PubName);
+  if ((Status != EFI_SUCCESS) && (Status != EFI_NOT_FOUND)) {
+    DEBUG ((DEBUG_ERROR, "%a - Failed to read the index! %r\n", __FUNCTION__, Status));
+    Status = EFI_DEVICE_ERROR;
+	return Status;
+  }
+
+  if (Status == EFI_SUCCESS) {
+    // Already defined, do nothing
+    Status = EFI_ALREADY_STARTED;
+    return Status;
+  }
+
+  DataSize = GetHashSizeFromAlgo (HashAlg);
+
+  ZeroMem (&PublicInfo, sizeof (PublicInfo));
+  PublicInfo.size = sizeof(TPMI_RH_NV_INDEX) +
+                    sizeof(TPMI_ALG_HASH) +
+                    sizeof(TPMA_NV) +
+                    sizeof(UINT16) +
+                    sizeof(UINT16);
+
+  PublicInfo.nvPublic.nvIndex = NvIndex;
+  PublicInfo.nvPublic.nameAlg = HashAlg;
+  PublicInfo.nvPublic.authPolicy.size = 0;
+  PublicInfo.nvPublic.dataSize = DataSize;
+  PublicInfo.nvPublic.attributes.TPMA_NV_OWNERWRITE = 1;
+  PublicInfo.nvPublic.attributes.TPMA_NV_OWNERREAD =1;
+  PublicInfo.nvPublic.attributes.TPMA_NV_EXTEND = 1;
+
+  AuthHandle = TPM_RH_OWNER;
+  ZeroMem (&NullAuth, sizeof (NullAuth));
+
+  return Tpm2NvDefineSpace (
+           AuthHandle,
+           NULL,
+           &NullAuth,
+           &PublicInfo
+           );
+}
+
+EFI_STATUS
+EFIAPI
+ProvisionNvIndex (
+  VOID
+  )
+{
+  EFI_STATUS          Status;
+  UINT16              DataSize;
+  TPMI_RH_NV_AUTH     AuthHandle;
+  UINT16              Offset;
+  TPM2B_MAX_BUFFER    OutData;
+  UINT16			  Index;
+
+  Status = CreateNvIndex (TCG_NV_EXTEND_INDEX_FOR_INSTANCE,
+                          TPM_ALG_SHA256);
+  if (EFI_ERROR (Status)) {
+    DEBUG((DEBUG_ERROR, "CreateNvIndex (INSTANCE) Status- %r\n", Status));
+  }
+
+  Status = CreateNvIndex (TCG_NV_EXTEND_INDEX_FOR_DYNAMIC,
+                          TPM_ALG_SHA256);
+  if (EFI_ERROR (Status)) {
+    DEBUG((DEBUG_ERROR, "CreateNvIndex (DYNAMIC) Status- %r\n", Status));
+  }
+
+  DataSize = GetHashSizeFromAlgo (TPM_ALG_SHA256);
+  Offset = 0;
+
+  AuthHandle = TPM_RH_OWNER;
+  ZeroMem (&OutData, sizeof (OutData));
+  Status = Tpm2NvRead (
+              AuthHandle,
+              TCG_NV_EXTEND_INDEX_FOR_INSTANCE,
+              NULL,
+              DataSize,
+              Offset,
+              &OutData
+              );
+  if(Status == EFI_SUCCESS){
+    DEBUG((DEBUG_ERROR, "NvIndex 0x%x\n", TCG_NV_EXTEND_INDEX_FOR_INSTANCE));
+	DEBUG((DEBUG_ERROR, "Data Size: 0x%x\n", OutData.size));
+    for (Index = 0; Index < OutData.size; Index ++ ) {
+      DEBUG((DEBUG_ERROR, "%02x", OutData.buffer[Index]));
+    }
+    DEBUG((DEBUG_ERROR, "\n"));
+  }
+
+  ZeroMem (&OutData, sizeof (OutData));
+  Status = Tpm2NvRead (
+              AuthHandle,
+              TCG_NV_EXTEND_INDEX_FOR_DYNAMIC,
+              NULL,
+              DataSize,
+              Offset,
+              &OutData
+              );
+  if(Status == EFI_SUCCESS){
+    DEBUG((DEBUG_ERROR, "NvIndex 0x%x\n", TCG_NV_EXTEND_INDEX_FOR_DYNAMIC));
+	DEBUG((DEBUG_ERROR, "Data Size: 0x%x\n", OutData.size));
+    for (Index = 0; Index < OutData.size; Index ++ ) {
+      DEBUG((DEBUG_ERROR, "%02x", OutData.buffer[Index]));
+    }
+    DEBUG((DEBUG_ERROR, "\n"));
+  }
+
   return Status;
 }
 
@@ -195,5 +338,9 @@ MainEntryPoint (
                   TestRootKey
                   );
   ASSERT_EFI_ERROR(Status);
+
+  Status = ProvisionNvIndex ();
+  DEBUG((DEBUG_ERROR, "ProvisionNvIndex - Status %r\n", Status));
+
   return EFI_SUCCESS;
 }

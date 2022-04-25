@@ -253,7 +253,12 @@ DEFINE CRYPT_LIB = OPENSSL
     SpdmDeviceSecretLib|DeviceSecurityPkg/Test/SpdmDeviceSecretLibTestStub/SpdmDeviceSecretLibTestStub.inf
   }
   DeviceSecurityPkg/Test/TestSpdm/TestSpdm.inf
-  DeviceSecurityPkg/Test/DeployCert/DeployCert.inf
+  DeviceSecurityPkg/Test/DeployCert/DeployCert.inf {
+  <LibraryClasses>
+    Tpm2CommandLib|SecurityPkg/Library/Tpm2CommandLib/Tpm2CommandLib.inf
+    Tpm2DeviceLib|SecurityPkg/Library/Tpm2DeviceLibTcg2/Tpm2DeviceLibTcg2.inf
+  }
+
 
   DeviceSecurityPkg/Test/PciIoPciDoeStub/PciIoPciDoeStub.inf {
   <LibraryClasses>

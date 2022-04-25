@@ -23,6 +23,7 @@
   MdePkg/MdePkg.dec
   CryptoPkg/CryptoPkg.dec
   MdeModulePkg/MdeModulePkg.dec
+  SecurityPkg/SecurityPkg.dec
   DeviceSecurityPkg/DeviceSecurityPkg.dec
 
 [LibraryClasses]
@@ -36,6 +37,7 @@
   DebugLib
   BaseCryptLib
   TpmMeasurementLib
+  Tpm2CommandLib
 
 [Guids]
   gEdkiiDeviceSignatureDatabaseGuid       ## PRODUCE
