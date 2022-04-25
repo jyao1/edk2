@@ -203,6 +203,42 @@ DumpPcr (
   }
 }
 
+/**
+  Dump Nv data.
+
+  @param NvIndex  Nv index
+  @param HashAlgo Hash algorithm
+**/
+VOID
+DumpNvIndex (
+  IN TPMI_DH_PCR    NvIndex,
+  IN TPMI_ALG_HASH  HashAlg
+  )
+{
+  EFI_STATUS          Status;
+  TPMI_RH_NV_AUTH     AuthHandle;
+  UINT16              DataSize;
+  TPM2B_MAX_BUFFER    OutData;
+  UINT16              Offset;
+
+  AuthHandle = TPM_RH_OWNER;
+  Offset = 0;
+  DataSize = GetHashSizeFromAlgo (HashAlg);
+  ZeroMem (&OutData, sizeof (OutData));
+  Status = Tpm2NvRead (
+              AuthHandle,
+              NvIndex,
+              NULL,
+              DataSize,
+              Offset,
+              &OutData
+              );
+
+  Print (L"PCR[0x%x] (Hash:0x%x): ", NvIndex, HashAlg);
+  InternalDumpData (OutData.buffer, DataSize);
+  Print (L"\n");
+}
+
 EFI_HASH_INFO *
 GetHashInfo (
   IN     TPM_ALG_ID  HashAlg
@@ -1226,6 +1262,9 @@ DumpEventLog (
   UINTN                            NumberOfEvents;
   UINT32                           AlgoIndex;
   TPMU_HA                          HashDigest;
+  TPM2B_NV_PUBLIC                  PublicInfo;
+  TPM2B_NAME	                   PubName;
+  EFI_STATUS                       Status;
 
   Print (L"EventLogFormat: (0x%x)\n", EventLogFormat);
   Print (L"EventLogLocation: (0x%lx)\n", EventLogLocation);
@@ -1331,13 +1370,22 @@ DumpEventLog (
 
       numberOfAlgorithms = GetTcgSpecIdNumberOfAlgorithms (TcgEfiSpecIdEventStruct);
       digestSize = GetTcgSpecIdDigestSize (TcgEfiSpecIdEventStruct);
+      if (PcrIndex > MAX_PCR_INDEX) {
+        Status = Tpm2NvReadPublic (PcrIndex, &PublicInfo, &PubName);
+        if (EFI_ERROR (Status)) {
+          return;
+        }
+      }
       for (AlgoIndex = 0; AlgoIndex < numberOfAlgorithms; AlgoIndex++) {
         HashAlg = digestSize[AlgoIndex].algorithmId;
+        if ((PcrIndex > MAX_PCR_INDEX) && (HashAlg != PublicInfo.nvPublic.nameAlg)) {
+          continue;
+        }
         ZeroMem (&HashDigest, sizeof(HashDigest));
 
         TcgPcrEvent2 = (TCG_PCR_EVENT2 *)((UINTN)TcgEfiSpecIdEventStruct + GetTcgEfiSpecIdEventStructSize (TcgEfiSpecIdEventStruct));
         while ((UINTN)TcgPcrEvent2 <= EventLogLastEntry) {
-          if ((PcrIndex == TcgPcrEvent2->PCRIndex) && (TcgPcrEvent2->EventType != EV_NO_ACTION)) {
+          if ((PcrIndex == TcgPcrEvent2->PCRIndex) && ((TcgPcrEvent2->EventType != EV_NO_ACTION) || (PcrIndex > MAX_PCR_INDEX))) {
             DigestBuffer = GetDigestFromPcrEvent2 (TcgPcrEvent2, HashAlg);
             if (DigestBuffer != NULL) {
               ExtendEvent (HashAlg, HashDigest.sha1, DigestBuffer);
@@ -1349,7 +1397,7 @@ DumpEventLog (
         if (FinalEventsTable != NULL) {
           TcgPcrEvent2 = (TCG_PCR_EVENT2 *)(UINTN)(FinalEventsTable + 1);
           for (NumberOfEvents = 0; NumberOfEvents < FinalEventsTable->NumberOfEvents; NumberOfEvents++) {
-            if ((PcrIndex == TcgPcrEvent2->PCRIndex) && (TcgPcrEvent2->EventType != EV_NO_ACTION)) {
+            if ((PcrIndex == TcgPcrEvent2->PCRIndex) && ((TcgPcrEvent2->EventType != EV_NO_ACTION) || (PcrIndex > MAX_PCR_INDEX))) {
               DigestBuffer = GetDigestFromPcrEvent2 (TcgPcrEvent2, HashAlg);
               if (DigestBuffer != NULL) {
                 ExtendEvent (HashAlg, HashDigest.sha1, DigestBuffer);
@@ -1360,13 +1408,21 @@ DumpEventLog (
         }
 
         Print (L"Tcg2Event Calculated:\n");
-        Print (L"    PCRIndex  - %d\n", PcrIndex);
+        if (PcrIndex <= MAX_PCR_INDEX) {
+          Print (L"    PCRIndex  - %d\n", PcrIndex);
+        } else {
+          Print (L"    PCRIndex  - 0x%x\n", PcrIndex);
+        }
         Print (L"    Digest    - ");
         for (Index = 0; Index < digestSize[AlgoIndex].digestSize; Index++) {
           Print (L"%02x", HashDigest.sha1[Index]);
         }
         Print (L"\n");
-        DumpPcr (PcrIndex, HashAlg);
+        if (PcrIndex <= MAX_PCR_INDEX) {
+          DumpPcr (PcrIndex, HashAlg);
+        } else {
+          DumpNvIndex (PcrIndex, HashAlg);
+        }
       }
       break;
     }
@@ -2006,8 +2062,10 @@ UefiMain (
       //
       if (CalculateExpected && (PcrIndex == PCR_INDEX_ALL)) {
         for (PcrIndex = 0; PcrIndex <= MAX_PCR_INDEX; PcrIndex++) {
-          DumpEventLog (mTcg2EventInfo[Index].LogFormat, EventLogLocation, EventLogLastEntry, FinalEventsTable, PcrIndex, CalculateExpected);
+          DumpEventLog (mTcg2EventInfo[Index].LogFormat, EventLogLocation, EventLogLastEntry, NULL, PcrIndex, CalculateExpected);
         }
+        DumpEventLog (mTcg2EventInfo[Index].LogFormat, EventLogLocation, EventLogLastEntry, NULL, TCG_NV_EXTEND_INDEX_FOR_INSTANCE, CalculateExpected);
+        DumpEventLog (mTcg2EventInfo[Index].LogFormat, EventLogLocation, EventLogLastEntry, NULL, TCG_NV_EXTEND_INDEX_FOR_DYNAMIC, CalculateExpected);
       } else {
         DumpEventLog (mTcg2EventInfo[Index].LogFormat, EventLogLocation, EventLogLastEntry, FinalEventsTable, PcrIndex, CalculateExpected);
       }
