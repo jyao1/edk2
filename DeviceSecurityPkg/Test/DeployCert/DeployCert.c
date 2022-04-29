@@ -23,6 +23,8 @@
 #include <industry_standard/spdm.h>
 #include <IndustryStandard/TcgSpdm.h>
 #include <Library/Tpm2CommandLib.h>
+#include <Library/ShellLib.h>
+#include <Library/UefiLib.h>
 
 #define SHA256_HASH_SIZE  32
 
@@ -38,6 +40,10 @@ extern UINTN EccTestRootCerSize;
 extern UINT8 EccTestRootKey[];
 extern UINTN EccTestRootKeySize;
 
+SHELL_PARAM_ITEM mParamList[] = {
+  {L"-P",   TypeFlag},
+  {NULL,    TypeMax},
+  };
 
 EFI_STATUS
 EFIAPI
@@ -254,6 +260,8 @@ MainEntryPoint (
   BOOLEAN             Res;
   UINT8               *RootCert;
   UINTN               RootCertLen;
+  LIST_ENTRY          *ParamPackage;
+
   CertChainSize = sizeof(SPDM_CERT_CHAIN) + SHA256_HASH_SIZE + TestRootCerSize;
   CertChain = AllocateZeroPool (CertChainSize);
   ASSERT (CertChain != NULL);
@@ -339,8 +347,16 @@ MainEntryPoint (
                   );
   ASSERT_EFI_ERROR(Status);
 
-  Status = ProvisionNvIndex ();
-  DEBUG((DEBUG_ERROR, "ProvisionNvIndex - Status %r\n", Status));
+  Status = ShellCommandLineParse (mParamList, &ParamPackage, NULL, TRUE);
+  if (EFI_ERROR(Status)) {
+    Print(L"ERROR: Incorrect command line.\n");
+    return Status;
+  }
+
+  if (ShellCommandLineGetFlag (ParamPackage, L"-P")) {
+    Status = ProvisionNvIndex ();
+    DEBUG((DEBUG_ERROR, "ProvisionNvIndex - Status %r\n", Status));
+  }
 
   return EFI_SUCCESS;
 }

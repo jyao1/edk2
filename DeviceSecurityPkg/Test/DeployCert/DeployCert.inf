@@ -25,6 +25,7 @@
   MdeModulePkg/MdeModulePkg.dec
   SecurityPkg/SecurityPkg.dec
   DeviceSecurityPkg/DeviceSecurityPkg.dec
+  ShellPkg/ShellPkg.dec
 
 [LibraryClasses]
   UefiRuntimeServicesTableLib
@@ -38,6 +39,7 @@
   BaseCryptLib
   TpmMeasurementLib
   Tpm2CommandLib
+  ShellLib
 
 [Guids]
   gEdkiiDeviceSignatureDatabaseGuid       ## PRODUCE
