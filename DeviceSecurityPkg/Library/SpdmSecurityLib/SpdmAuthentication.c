@@ -70,6 +70,7 @@ MeasureVariable (
 EFI_STATUS
 ExtendCertificate (
   IN  SPDM_DEVICE_CONTEXT        *SpdmDeviceContext,
+  IN UINT8                       AuthState,
   IN UINTN                       CertChainSize,
   IN UINT8                       *CertChain,
   IN VOID                        *TrustAnchor,
@@ -102,67 +103,134 @@ ExtendCertificate (
   DeviceContextSize = GetDeviceMeasurementContextSize (SpdmDeviceContext);
   DevicePathSize = GetDevicePathSize (SpdmDeviceContext->DevicePath);
 
-  EventLogSize = (UINT32)(sizeof(TCG_NV_INDEX_INSTANCE_EVENT_LOG_STRUCT) +
-                          sizeof(TCG_DEVICE_SECURITY_EVENT_DATA_HEADER2) +
-                          sizeof(UINT64) + DevicePathSize +
-                          sizeof(TCG_DEVICE_SECURITY_EVENT_DATA_SUB_HEADER_SPDM_CERT_CHAIN) +
-                          CertChainSize +
-                          DeviceContextSize);
-  EventLog = AllocatePool (EventLogSize);
-  if (EventLog == NULL) {
-    return EFI_OUT_OF_RESOURCES;
-  }
-  EventLogPtr = EventLog;
-
-  NvIndexInstance = (VOID *)EventLogPtr;
-  CopyMem (NvIndexInstance->Signature, TCG_NV_EXTEND_INDEX_FOR_INSTANCE_SIGNATURE, sizeof(TCG_NV_EXTEND_INDEX_FOR_INSTANCE_SIGNATURE));
-  NvIndexInstance->Version = TCG_NV_INDEX_INSTANCE_EVENT_LOG_STRUCT_VERSION;
-  ZeroMem (NvIndexInstance->Reserved, sizeof(NvIndexInstance->Reserved));
-  EventLogPtr += sizeof(TCG_NV_INDEX_INSTANCE_EVENT_LOG_STRUCT);
-
-  EventData2 = (VOID *)EventLogPtr;
-  CopyMem (EventData2->Signature, TCG_DEVICE_SECURITY_EVENT_DATA_SIGNATURE_2, sizeof(EventData2->Signature));
-  EventData2->Version                  = TCG_DEVICE_SECURITY_EVENT_DATA_VERSION_2;
-  EventData2->Reserved                 = 0;
-  EventData2->Length                   = (UINT32)EventLogSize;
-  EventData2->DeviceType               = GetSpdmDeviceType (SpdmDeviceContext);
-
-  EventData2->SubHeaderType            = TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_SUB_HEADER_TYPE_SPDM_CERT_CHAIN;
-  EventData2->SubHeaderLength          = (UINT32)(sizeof(TCG_DEVICE_SECURITY_EVENT_DATA_SUB_HEADER_SPDM_CERT_CHAIN) + CertChainSize);
-  EventData2->SubHeaderUID             = SpdmDeviceContext->DeviceUID;
-
-  EventLogPtr = (VOID *)(EventData2 + 1);
-
-  *(UINT64 *)EventLogPtr = (UINT64)DevicePathSize;
-  EventLogPtr += sizeof(UINT64);
-  CopyMem (EventLogPtr, SpdmDeviceContext->DevicePath, DevicePathSize);
-  EventLogPtr += DevicePathSize;
-
-  TcgSpdmCertChain = (VOID *)EventLogPtr;
-  TcgSpdmCertChain->SpdmVersion = SpdmDeviceContext->SpdmVersion;
-  TcgSpdmCertChain->SpdmHashAlgo = BaseHashAlgo;
-  EventLogPtr += sizeof(TCG_DEVICE_SECURITY_EVENT_DATA_SUB_HEADER_SPDM_CERT_CHAIN);
-
-  CopyMem (EventLogPtr, CertChain, CertChainSize);
-  EventLogPtr += CertChainSize;
-
-  if (DeviceContextSize != 0) {
-    DeviceContext = (VOID *)EventLogPtr;
-    Status = CreateDeviceMeasurementContext (SpdmDeviceContext, DeviceContext, DeviceContextSize);
-    if (Status != EFI_SUCCESS) {
-      return EFI_DEVICE_ERROR;
+  switch (AuthState) {
+  case TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_AUTH_STATE_SUCCESS:
+  case TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_AUTH_STATE_FAIL_NO_AUTH:
+  case TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_AUTH_STATE_FAIL_NO_BINDING:
+    EventLogSize = (UINT32)(sizeof(TCG_NV_INDEX_INSTANCE_EVENT_LOG_STRUCT) +
+                            sizeof(TCG_DEVICE_SECURITY_EVENT_DATA_HEADER2) +
+                            sizeof(UINT64) + DevicePathSize +
+                            sizeof(TCG_DEVICE_SECURITY_EVENT_DATA_SUB_HEADER_SPDM_CERT_CHAIN) +
+                            CertChainSize +
+                            DeviceContextSize);
+    EventLog = AllocatePool (EventLogSize);
+    if (EventLog == NULL) {
+      return EFI_OUT_OF_RESOURCES;
     }
-  }
+    EventLogPtr = EventLog;
 
-  Status = TpmMeasureAndLogData (
-             TCG_NV_EXTEND_INDEX_FOR_INSTANCE,
-             EV_NO_ACTION,
-             EventLog,
-             EventLogSize,
-             EventLog,
-             EventLogSize
-             );
-  DEBUG((DEBUG_INFO, "TpmMeasureAndLogData (Instance) - %r\n", Status));
+    NvIndexInstance = (VOID *)EventLogPtr;
+    CopyMem (NvIndexInstance->Signature, TCG_NV_EXTEND_INDEX_FOR_INSTANCE_SIGNATURE, sizeof(TCG_NV_EXTEND_INDEX_FOR_INSTANCE_SIGNATURE));
+    NvIndexInstance->Version = TCG_NV_INDEX_INSTANCE_EVENT_LOG_STRUCT_VERSION;
+    ZeroMem (NvIndexInstance->Reserved, sizeof(NvIndexInstance->Reserved));
+    EventLogPtr += sizeof(TCG_NV_INDEX_INSTANCE_EVENT_LOG_STRUCT);
+
+    EventData2 = (VOID *)EventLogPtr;
+    CopyMem (EventData2->Signature, TCG_DEVICE_SECURITY_EVENT_DATA_SIGNATURE_2, sizeof(EventData2->Signature));
+    EventData2->Version                  = TCG_DEVICE_SECURITY_EVENT_DATA_VERSION_2;
+    EventData2->AuthState                = AuthState;
+    EventData2->Reserved                 = 0;
+    EventData2->Length                   = (UINT32)EventLogSize;
+    EventData2->DeviceType               = GetSpdmDeviceType (SpdmDeviceContext);
+
+    EventData2->SubHeaderType            = TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_SUB_HEADER_TYPE_SPDM_CERT_CHAIN;
+    EventData2->SubHeaderLength          = (UINT32)(sizeof(TCG_DEVICE_SECURITY_EVENT_DATA_SUB_HEADER_SPDM_CERT_CHAIN) + CertChainSize);
+    EventData2->SubHeaderUID             = SpdmDeviceContext->DeviceUID;
+
+    EventLogPtr = (VOID *)(EventData2 + 1);
+
+    *(UINT64 *)EventLogPtr = (UINT64)DevicePathSize;
+    EventLogPtr += sizeof(UINT64);
+    CopyMem (EventLogPtr, SpdmDeviceContext->DevicePath, DevicePathSize);
+    EventLogPtr += DevicePathSize;
+
+    TcgSpdmCertChain = (VOID *)EventLogPtr;
+    TcgSpdmCertChain->SpdmVersion = SpdmDeviceContext->SpdmVersion;
+    TcgSpdmCertChain->SpdmHashAlgo = BaseHashAlgo;
+    EventLogPtr += sizeof(TCG_DEVICE_SECURITY_EVENT_DATA_SUB_HEADER_SPDM_CERT_CHAIN);
+
+    CopyMem (EventLogPtr, CertChain, CertChainSize);
+    EventLogPtr += CertChainSize;
+
+    if (DeviceContextSize != 0) {
+      DeviceContext = (VOID *)EventLogPtr;
+      Status = CreateDeviceMeasurementContext (SpdmDeviceContext, DeviceContext, DeviceContextSize);
+      if (Status != EFI_SUCCESS) {
+        return EFI_DEVICE_ERROR;
+      }
+    }
+
+    Status = TpmMeasureAndLogData (
+               TCG_NV_EXTEND_INDEX_FOR_INSTANCE,
+               EV_NO_ACTION,
+               EventLog,
+               EventLogSize,
+               EventLog,
+               EventLogSize
+               );
+    DEBUG((DEBUG_INFO, "TpmMeasureAndLogData (Instance) - %r\n", Status));
+
+    break;
+  case TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_AUTH_STATE_FAIL_INVALID:
+  case TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_AUTH_STATE_FAIL_NO_SIG:
+  case TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_AUTH_STATE_NO_SPDM:
+    EventLogSize = (UINT32)(sizeof(TCG_NV_INDEX_INSTANCE_EVENT_LOG_STRUCT) +
+                            sizeof(TCG_DEVICE_SECURITY_EVENT_DATA_HEADER2) +
+                            sizeof(UINT64) + DevicePathSize +
+                            DeviceContextSize);
+    EventLog = AllocatePool (EventLogSize);
+    if (EventLog == NULL) {
+      return EFI_OUT_OF_RESOURCES;
+    }
+    EventLogPtr = EventLog;
+
+    NvIndexInstance = (VOID *)EventLogPtr;
+    CopyMem (NvIndexInstance->Signature, TCG_NV_EXTEND_INDEX_FOR_INSTANCE_SIGNATURE, sizeof(TCG_NV_EXTEND_INDEX_FOR_INSTANCE_SIGNATURE));
+    NvIndexInstance->Version = TCG_NV_INDEX_INSTANCE_EVENT_LOG_STRUCT_VERSION;
+    ZeroMem (NvIndexInstance->Reserved, sizeof(NvIndexInstance->Reserved));
+    EventLogPtr += sizeof(TCG_NV_INDEX_INSTANCE_EVENT_LOG_STRUCT);
+
+    EventData2 = (VOID *)EventLogPtr;
+    CopyMem (EventData2->Signature, TCG_DEVICE_SECURITY_EVENT_DATA_SIGNATURE_2, sizeof(EventData2->Signature));
+    EventData2->Version                  = TCG_DEVICE_SECURITY_EVENT_DATA_VERSION_2;
+    EventData2->AuthState                = AuthState;
+    EventData2->Reserved                 = 0;
+    EventData2->Length                   = (UINT32)EventLogSize;
+    EventData2->DeviceType               = GetSpdmDeviceType (SpdmDeviceContext);
+
+    EventData2->SubHeaderType            = TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_SUB_HEADER_TYPE_SPDM_CERT_CHAIN;
+    EventData2->SubHeaderLength          = 0;
+    EventData2->SubHeaderUID             = SpdmDeviceContext->DeviceUID;
+
+    EventLogPtr = (VOID *)(EventData2 + 1);
+
+    *(UINT64 *)EventLogPtr = (UINT64)DevicePathSize;
+    EventLogPtr += sizeof(UINT64);
+    CopyMem (EventLogPtr, SpdmDeviceContext->DevicePath, DevicePathSize);
+    EventLogPtr += DevicePathSize;
+
+    if (DeviceContextSize != 0) {
+      DeviceContext = (VOID *)EventLogPtr;
+      Status = CreateDeviceMeasurementContext (SpdmDeviceContext, DeviceContext, DeviceContextSize);
+      if (Status != EFI_SUCCESS) {
+        return EFI_DEVICE_ERROR;
+      }
+    }
+
+    Status = TpmMeasureAndLogData (
+               TCG_NV_EXTEND_INDEX_FOR_INSTANCE,
+               EV_NO_ACTION,
+               EventLog,
+               EventLogSize,
+               EventLog,
+               EventLogSize
+               );
+    DEBUG((DEBUG_INFO, "TpmMeasureAndLogData (Instance) - %r\n", Status));
+
+    return Status;
+  default:
+    return EFI_UNSUPPORTED;
+  }
 
   {
     EFI_SIGNATURE_DATA  *SignatureData;
@@ -372,6 +440,10 @@ DoDeviceAuthentication (
   UINT8                 ResponderNonce[SPDM_NONCE_SIZE];
   VOID                  *TrustAnchor;
   UINTN                 TrustAnchorSize;
+  BOOLEAN               IsValidCertChain;
+  BOOLEAN               IsValidChanllegeAuthSig;
+  BOOLEAN               RootCertMatch;
+  UINT8                 AuthState;
 
   SpdmContext = SpdmDeviceContext->SpdmContext;
 
@@ -381,6 +453,15 @@ DoDeviceAuthentication (
   SpdmGetData (SpdmContext, SpdmDataCapabilityFlags, &Parameter, &CapabilityFlags, &DataSize);
 
   Status = EFI_UNSUPPORTED;
+  IsValidCertChain = FALSE;
+  IsValidChanllegeAuthSig = FALSE;
+  IsValidChanllegeAuthSig = FALSE;
+
+  if ((CapabilityFlags & SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_CERT_CAP) == 0) {
+    AuthState = TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_AUTH_STATE_FAIL_NO_SIG;
+    ExtendCertificate (SpdmDeviceContext, AuthState, 0, NULL, NULL, 0);
+    return Status;
+  }
 
   if ((CapabilityFlags & SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_CERT_CAP) != 0) {
     ZeroMem (TotalDigestBuffer, sizeof(TotalDigestBuffer));
@@ -391,18 +472,54 @@ DoDeviceAuthentication (
     TrustAnchor = NULL;
     TrustAnchorSize = 0;
     Status = SpdmGetCertificateEx (SpdmContext, 0, &CertChainSize, CertChain, &TrustAnchor, &TrustAnchorSize);
+    if (Status == LIBSPDM_STATUS_SUCCESS) {
+      IsValidCertChain = TRUE;
+    } else if (Status == LIBSPDM_STATUS_VERIF_FAIL) {
+      IsValidCertChain = FALSE;
+      AuthState = TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_AUTH_STATE_FAIL_INVALID;
+      ExtendCertificate (SpdmDeviceContext, AuthState, 0, NULL, NULL, 0);
+      return Status;
+    } else {
+      return Status;
+    }
 
-    ExtendCertificate (SpdmDeviceContext, CertChainSize, CertChain, TrustAnchor, TrustAnchorSize);
+    if (TrustAnchor != NULL) {
+      RootCertMatch = TRUE;
+    }
+    DEBUG ((DEBUG_ERROR, "SpdmGetCertificateEx - Status %r, TrustAnchorSize 0x%x\n", Status, TrustAnchorSize));
   }
 
+  if ((CapabilityFlags & SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_CHAL_CAP) == 0) {
+    AuthState = TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_AUTH_STATE_FAIL_NO_BINDING;
+    ExtendCertificate (SpdmDeviceContext, AuthState, CertChainSize, CertChain, TrustAnchor, TrustAnchorSize);
+  }
   if ((CapabilityFlags & SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_CHAL_CAP) != 0) {
     ZeroMem (MeasurementHash, sizeof(MeasurementHash));
     ZeroMem (RequesterNonce, sizeof(RequesterNonce));
     ZeroMem (ResponderNonce, sizeof(ResponderNonce));
     ZeroMem (RequesterNonceIn, sizeof(RequesterNonceIn));
     Status = SpdmChallengeEx (SpdmContext, 0, SPDM_CHALLENGE_REQUEST_TCB_COMPONENT_MEASUREMENT_HASH, MeasurementHash, NULL, RequesterNonceIn, RequesterNonce, ResponderNonce);
-
+    if (Status == LIBSPDM_STATUS_SUCCESS) {
+      IsValidChanllegeAuthSig = TRUE;
+    } else if (Status == LIBSPDM_STATUS_VERIF_FAIL) {
+      IsValidChanllegeAuthSig = FALSE;
+      AuthState = TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_AUTH_STATE_FAIL_INVALID;
+      ExtendCertificate (SpdmDeviceContext, AuthState, 0, NULL, NULL, 0);
+      return Status;
+    } else {
+      return Status;
+    }
+    if (IsValidCertChain && IsValidChanllegeAuthSig && !RootCertMatch) {
+      AuthState = TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_AUTH_STATE_FAIL_NO_AUTH;
+      ExtendCertificate (SpdmDeviceContext, AuthState, CertChainSize, CertChain, NULL, 0);
+      return Status;
+    }
+    if (IsValidCertChain && IsValidChanllegeAuthSig && RootCertMatch) {
+      AuthState = TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_AUTH_STATE_SUCCESS;
+      ExtendCertificate (SpdmDeviceContext, AuthState, CertChainSize, CertChain, TrustAnchor, TrustAnchorSize);
+    }
     ExtendAuthentication (SpdmDeviceContext, SPDM_CHALLENGE_REQUEST_TCB_COMPONENT_MEASUREMENT_HASH, MeasurementHash, RequesterNonce, ResponderNonce);
   }
+
   return Status;
 }

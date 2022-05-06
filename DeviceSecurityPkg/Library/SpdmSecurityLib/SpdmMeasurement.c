@@ -138,6 +138,7 @@ CreateDeviceMeasurementContext (
 EFI_STATUS
 ExtendMeasurement (
   IN  SPDM_DEVICE_CONTEXT  *SpdmDeviceContext,
+  IN UINT8                        AuthState,
   IN UINT32                       MeasurementRecordLength,
   IN UINT8                        *MeasurementRecord,
   IN UINT8                        *RequesterNonce,
@@ -176,147 +177,230 @@ ExtendMeasurement (
   Status = SpdmGetData (SpdmContext, SpdmDataMeasurementHashAlgo, &Parameter, &MeasurementHashAlgo, &DataSize);
   ASSERT_EFI_ERROR(Status);
 
-  SpdmMeasurementBlockCommonHeader = (VOID *)MeasurementRecord;
-  SpdmMeasurementBlockDmtfHeader = (VOID *)(SpdmMeasurementBlockCommonHeader + 1);
-  Digest = (SpdmMeasurementBlockDmtfHeader + 1);
-  DigestSize = MeasurementRecordLength - sizeof(SPDM_MEASUREMENT_BLOCK_DMTF);
+  if (MeasurementRecord != NULL) {
+    SpdmMeasurementBlockCommonHeader = (VOID *)MeasurementRecord;
+    SpdmMeasurementBlockDmtfHeader = (VOID *)(SpdmMeasurementBlockCommonHeader + 1);
+    Digest = (SpdmMeasurementBlockDmtfHeader + 1);
+    DigestSize = MeasurementRecordLength - sizeof(SPDM_MEASUREMENT_BLOCK_DMTF);
   
-  DEBUG((DEBUG_INFO, "SpdmMeasurementBlockCommonHeader\n"));
-  DEBUG((DEBUG_INFO, "  Index                        - 0x%02x\n", SpdmMeasurementBlockCommonHeader->index));
-  DEBUG((DEBUG_INFO, "  MeasurementSpecification     - 0x%02x\n", SpdmMeasurementBlockCommonHeader->measurement_specification));
-  DEBUG((DEBUG_INFO, "  MeasurementSize              - 0x%04x\n", SpdmMeasurementBlockCommonHeader->measurement_size));
-  DEBUG((DEBUG_INFO, "SpdmMeasurementBlockDmtfHeader\n"));
-  DEBUG((DEBUG_INFO, "  DMTFSpecMeasurementValueType - 0x%02x\n", SpdmMeasurementBlockDmtfHeader->dmtf_spec_measurement_value_type));
-  DEBUG((DEBUG_INFO, "  DMTFSpecMeasurementValueSize - 0x%04x\n", SpdmMeasurementBlockDmtfHeader->dmtf_spec_measurement_value_size));
-  DEBUG((DEBUG_INFO, "Measurement - "));
-  InternalDumpData (Digest, DigestSize);
-  DEBUG((DEBUG_INFO, "\n"));
-  if (MeasurementRecordLength <= sizeof(SPDM_MEASUREMENT_BLOCK_COMMON_HEADER) + sizeof(SPDM_MEASUREMENT_BLOCK_DMTF_HEADER)) {
-    return EFI_SECURITY_VIOLATION;
-  }
-  if ((SpdmMeasurementBlockCommonHeader->measurement_specification & SPDM_MEASUREMENT_BLOCK_HEADER_SPECIFICATION_DMTF) == 0) {
-    return EFI_SECURITY_VIOLATION;
-  }
-  if (SpdmMeasurementBlockCommonHeader->measurement_size != MeasurementRecordLength - sizeof(SPDM_MEASUREMENT_BLOCK_COMMON_HEADER)) {
-    return EFI_SECURITY_VIOLATION;
-  }
-  if (SpdmMeasurementBlockDmtfHeader->dmtf_spec_measurement_value_size != SpdmMeasurementBlockCommonHeader->measurement_size - sizeof(SPDM_MEASUREMENT_BLOCK_DMTF_HEADER)) {
-    return EFI_SECURITY_VIOLATION;
-  }
+    DEBUG((DEBUG_INFO, "SpdmMeasurementBlockCommonHeader\n"));
+    DEBUG((DEBUG_INFO, "  Index                        - 0x%02x\n", SpdmMeasurementBlockCommonHeader->index));
+    DEBUG((DEBUG_INFO, "  MeasurementSpecification     - 0x%02x\n", SpdmMeasurementBlockCommonHeader->measurement_specification));
+    DEBUG((DEBUG_INFO, "  MeasurementSize              - 0x%04x\n", SpdmMeasurementBlockCommonHeader->measurement_size));
+    DEBUG((DEBUG_INFO, "SpdmMeasurementBlockDmtfHeader\n"));
+    DEBUG((DEBUG_INFO, "  DMTFSpecMeasurementValueType - 0x%02x\n", SpdmMeasurementBlockDmtfHeader->dmtf_spec_measurement_value_type));
+    DEBUG((DEBUG_INFO, "  DMTFSpecMeasurementValueSize - 0x%04x\n", SpdmMeasurementBlockDmtfHeader->dmtf_spec_measurement_value_size));
+    DEBUG((DEBUG_INFO, "Measurement - "));
+    InternalDumpData (Digest, DigestSize);
+    DEBUG((DEBUG_INFO, "\n"));
+    if (MeasurementRecordLength <= sizeof(SPDM_MEASUREMENT_BLOCK_COMMON_HEADER) + sizeof(SPDM_MEASUREMENT_BLOCK_DMTF_HEADER)) {
+      return EFI_SECURITY_VIOLATION;
+    }
+    if ((SpdmMeasurementBlockCommonHeader->measurement_specification & SPDM_MEASUREMENT_BLOCK_HEADER_SPECIFICATION_DMTF) == 0) {
+      return EFI_SECURITY_VIOLATION;
+    }
+    if (SpdmMeasurementBlockCommonHeader->measurement_size != MeasurementRecordLength - sizeof(SPDM_MEASUREMENT_BLOCK_COMMON_HEADER)) {
+      return EFI_SECURITY_VIOLATION;
+    }
+    if (SpdmMeasurementBlockDmtfHeader->dmtf_spec_measurement_value_size != SpdmMeasurementBlockCommonHeader->measurement_size - sizeof(SPDM_MEASUREMENT_BLOCK_DMTF_HEADER)) {
+      return EFI_SECURITY_VIOLATION;
+    }
 
-  //
-  // Use PCR 2 for Firmware Blob code.
-  //
-  switch (SpdmMeasurementBlockDmtfHeader->dmtf_spec_measurement_value_type & 0x7F) {
-  case SPDM_MEASUREMENT_BLOCK_MEASUREMENT_TYPE_IMMUTABLE_ROM:
-  case SPDM_MEASUREMENT_BLOCK_MEASUREMENT_TYPE_MUTABLE_FIRMWARE:
-  case SPDM_MEASUREMENT_BLOCK_MEASUREMENT_TYPE_VERSION:
-  case SPDM_MEASUREMENT_BLOCK_MEASUREMENT_TYPE_SECURE_VERSION_NUMBER:
-    if (SpdmDeviceContext->IsEmbeddedDevice) {
-      PcrIndex = 0;
-    } else {
-      PcrIndex = 2;
+    //
+    // Use PCR 2 for Firmware Blob code.
+    //
+    switch (SpdmMeasurementBlockDmtfHeader->dmtf_spec_measurement_value_type & 0x7F) {
+    case SPDM_MEASUREMENT_BLOCK_MEASUREMENT_TYPE_IMMUTABLE_ROM:
+    case SPDM_MEASUREMENT_BLOCK_MEASUREMENT_TYPE_MUTABLE_FIRMWARE:
+    case SPDM_MEASUREMENT_BLOCK_MEASUREMENT_TYPE_VERSION:
+    case SPDM_MEASUREMENT_BLOCK_MEASUREMENT_TYPE_SECURE_VERSION_NUMBER:
+      if (SpdmDeviceContext->IsEmbeddedDevice) {
+        PcrIndex = 0;
+      } else {
+        PcrIndex = 2;
+      }
+      EventType = EV_EFI_SPDM_FIRMWARE_BLOB;
+      break;
+    case SPDM_MEASUREMENT_BLOCK_MEASUREMENT_TYPE_HARDWARE_CONFIGURATION:
+    case SPDM_MEASUREMENT_BLOCK_MEASUREMENT_TYPE_FIRMWARE_CONFIGURATION:
+    case SPDM_MEASUREMENT_BLOCK_MEASUREMENT_TYPE_DEVICE_MODE:
+      if (SpdmDeviceContext->IsEmbeddedDevice) {
+        PcrIndex = 1;
+      } else {
+        PcrIndex = 3;
+      }
+      EventType = EV_EFI_SPDM_FIRMWARE_CONFIG;
+      break;
+    case SPDM_MEASUREMENT_BLOCK_MEASUREMENT_TYPE_MEASUREMENT_MANIFEST:
+      // skip manifest
+    default:
+      return EFI_SUCCESS;
     }
-    EventType = EV_EFI_SPDM_FIRMWARE_BLOB;
-    break;
-  case SPDM_MEASUREMENT_BLOCK_MEASUREMENT_TYPE_HARDWARE_CONFIGURATION:
-  case SPDM_MEASUREMENT_BLOCK_MEASUREMENT_TYPE_FIRMWARE_CONFIGURATION:
-  case SPDM_MEASUREMENT_BLOCK_MEASUREMENT_TYPE_DEVICE_MODE:
-    if (SpdmDeviceContext->IsEmbeddedDevice) {
-      PcrIndex = 1;
-    } else {
-      PcrIndex = 3;
-    }
-    EventType = EV_EFI_SPDM_FIRMWARE_CONFIG;
-    break;
-  case SPDM_MEASUREMENT_BLOCK_MEASUREMENT_TYPE_MEASUREMENT_MANIFEST:
-    // skip manifest
-  default:
-    return EFI_SUCCESS;
   }
 
   DeviceContextSize = GetDeviceMeasurementContextSize (SpdmDeviceContext);
   DevicePathSize = GetDevicePathSize (SpdmDeviceContext->DevicePath);
+
+  switch (AuthState) {
+  case TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_AUTH_STATE_SUCCESS:
 #if (TCG_DEVICE_SECURITY_EVENT_DATA_VERSION_SELECTION == TCG_DEVICE_SECURITY_EVENT_DATA_VERSION_1)
-  EventLogSize = (UINT32)(sizeof(TCG_DEVICE_SECURITY_EVENT_DATA_HEADER) +
-                          MeasurementRecordLength +
-                          sizeof(UINT64) + DevicePathSize +
-                          DeviceContextSize);
+    EventLogSize = (UINT32)(sizeof(TCG_DEVICE_SECURITY_EVENT_DATA_HEADER) +
+                            MeasurementRecordLength +
+                            sizeof(UINT64) + DevicePathSize +
+                            DeviceContextSize);
 #else
-  EventLogSize = (UINT32)(sizeof(TCG_DEVICE_SECURITY_EVENT_DATA_HEADER2) +
-                          sizeof(UINT64) + DevicePathSize +
-                          sizeof(TCG_DEVICE_SECURITY_EVENT_DATA_SUB_HEADER_SPDM_MEASUREMENT_BLOCK) +
-                          MeasurementRecordLength +
-                          DeviceContextSize);
-#endif
-  EventLog = AllocatePool (EventLogSize);
-  if (EventLog == NULL) {
-    return EFI_OUT_OF_RESOURCES;
-  }
-  EventLogPtr = EventLog;
-
-#if (TCG_DEVICE_SECURITY_EVENT_DATA_VERSION_SELECTION == TCG_DEVICE_SECURITY_EVENT_DATA_VERSION_1)
-  EventData = (VOID *)EventLogPtr;
-  CopyMem (EventData->Signature, TCG_DEVICE_SECURITY_EVENT_DATA_SIGNATURE, sizeof(EventData->Signature));
-  EventData->Version                  = TCG_DEVICE_SECURITY_EVENT_DATA_VERSION_1;
-  EventData->Length                   = (UINT16)EventLogSize;
-  EventData->SpdmHashAlgo             = MeasurementHashAlgo;
-  EventData->DeviceType               = GetSpdmDeviceType (SpdmDeviceContext);
-
-  EventLogPtr = (VOID *)(EventData + 1);
-
-  CopyMem (EventLogPtr, MeasurementRecord, MeasurementRecordLength);
-  EventLogPtr += MeasurementRecordLength;
-
-  *(UINT64 *)EventLogPtr = (UINT64)DevicePathSize;
-  EventLogPtr += sizeof(UINT64);
-  CopyMem (EventLogPtr, SpdmDeviceContext->DevicePath, DevicePathSize);
-  EventLogPtr += DevicePathSize;
-#else
-  EventData2 = (VOID *)EventLogPtr;
-  CopyMem (EventData2->Signature, TCG_DEVICE_SECURITY_EVENT_DATA_SIGNATURE_2, sizeof(EventData2->Signature));
-  EventData2->Version                  = TCG_DEVICE_SECURITY_EVENT_DATA_VERSION_2;
-  EventData2->Reserved                 = 0;
-  EventData2->Length                   = (UINT32)EventLogSize;
-  EventData2->DeviceType               = GetSpdmDeviceType (SpdmDeviceContext);
-
-  EventData2->SubHeaderType            = TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_SUB_HEADER_TYPE_SPDM_MEASUREMENT_BLOCK;
-  EventData2->SubHeaderLength          = sizeof(TCG_DEVICE_SECURITY_EVENT_DATA_SUB_HEADER_SPDM_MEASUREMENT_BLOCK) + MeasurementRecordLength;
-  EventData2->SubHeaderUID             = SpdmDeviceContext->DeviceUID;
-
-  EventLogPtr = (VOID *)(EventData2 + 1);
-
-  *(UINT64 *)EventLogPtr = (UINT64)DevicePathSize;
-  EventLogPtr += sizeof(UINT64);
-  CopyMem (EventLogPtr, SpdmDeviceContext->DevicePath, DevicePathSize);
-  EventLogPtr += DevicePathSize;
-
-  TcgSpdmMeasurementBlock = (VOID *)EventLogPtr;
-  TcgSpdmMeasurementBlock->SpdmVersion = SpdmDeviceContext->SpdmVersion;
-  TcgSpdmMeasurementBlock->SpdmMeasurementHashAlgo = MeasurementHashAlgo;
-  EventLogPtr += sizeof(TCG_DEVICE_SECURITY_EVENT_DATA_SUB_HEADER_SPDM_MEASUREMENT_BLOCK);
-
-  CopyMem (EventLogPtr, MeasurementRecord, MeasurementRecordLength);
-  EventLogPtr += MeasurementRecordLength;
-#endif
-
-  if (DeviceContextSize != 0) {
-    DeviceContext = (VOID *)EventLogPtr;
-    Status = CreateDeviceMeasurementContext (SpdmDeviceContext, DeviceContext, DeviceContextSize);
-    if (Status != EFI_SUCCESS) {
-      return EFI_DEVICE_ERROR;
+    EventLogSize = (UINT32)(sizeof(TCG_DEVICE_SECURITY_EVENT_DATA_HEADER2) +
+                            sizeof(UINT64) + DevicePathSize +
+                            sizeof(TCG_DEVICE_SECURITY_EVENT_DATA_SUB_HEADER_SPDM_MEASUREMENT_BLOCK) +
+                            MeasurementRecordLength +
+                            DeviceContextSize);
+  #endif
+    EventLog = AllocatePool (EventLogSize);
+    if (EventLog == NULL) {
+      return EFI_OUT_OF_RESOURCES;
     }
-  }
+    EventLogPtr = EventLog;
 
-  Status = TpmMeasureAndLogData (
-             PcrIndex,
-             EventType,
-             EventLog,
-             EventLogSize,
-             EventLog,
-             EventLogSize
-             );
-  DEBUG((DEBUG_INFO, "TpmMeasureAndLogData (Measurement) - %r\n", Status));
+#if (TCG_DEVICE_SECURITY_EVENT_DATA_VERSION_SELECTION == TCG_DEVICE_SECURITY_EVENT_DATA_VERSION_1)
+    EventData = (VOID *)EventLogPtr;
+    CopyMem (EventData->Signature, TCG_DEVICE_SECURITY_EVENT_DATA_SIGNATURE, sizeof(EventData->Signature));
+    EventData->Version                  = TCG_DEVICE_SECURITY_EVENT_DATA_VERSION_1;
+    EventData->Length                   = (UINT16)EventLogSize;
+    EventData->SpdmHashAlgo             = MeasurementHashAlgo;
+    EventData->DeviceType               = GetSpdmDeviceType (SpdmDeviceContext);
+
+    EventLogPtr = (VOID *)(EventData + 1);
+
+    CopyMem (EventLogPtr, MeasurementRecord, MeasurementRecordLength);
+    EventLogPtr += MeasurementRecordLength;
+
+    *(UINT64 *)EventLogPtr = (UINT64)DevicePathSize;
+    EventLogPtr += sizeof(UINT64);
+    CopyMem (EventLogPtr, SpdmDeviceContext->DevicePath, DevicePathSize);
+    EventLogPtr += DevicePathSize;
+#else
+    EventData2 = (VOID *)EventLogPtr;
+    CopyMem (EventData2->Signature, TCG_DEVICE_SECURITY_EVENT_DATA_SIGNATURE_2, sizeof(EventData2->Signature));
+    EventData2->Version                  = TCG_DEVICE_SECURITY_EVENT_DATA_VERSION_2;
+    EventData2->AuthState                = AuthState;
+    EventData2->Reserved                 = 0;
+    EventData2->Length                   = (UINT32)EventLogSize;
+    EventData2->DeviceType               = GetSpdmDeviceType (SpdmDeviceContext);
+
+    EventData2->SubHeaderType            = TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_SUB_HEADER_TYPE_SPDM_MEASUREMENT_BLOCK;
+    EventData2->SubHeaderLength          = sizeof(TCG_DEVICE_SECURITY_EVENT_DATA_SUB_HEADER_SPDM_MEASUREMENT_BLOCK) + MeasurementRecordLength;
+    EventData2->SubHeaderUID             = SpdmDeviceContext->DeviceUID;
+
+    EventLogPtr = (VOID *)(EventData2 + 1);
+
+    *(UINT64 *)EventLogPtr = (UINT64)DevicePathSize;
+    EventLogPtr += sizeof(UINT64);
+    CopyMem (EventLogPtr, SpdmDeviceContext->DevicePath, DevicePathSize);
+    EventLogPtr += DevicePathSize;
+
+    TcgSpdmMeasurementBlock = (VOID *)EventLogPtr;
+    TcgSpdmMeasurementBlock->SpdmVersion = SpdmDeviceContext->SpdmVersion;
+    TcgSpdmMeasurementBlock->SpdmMeasurementHashAlgo = MeasurementHashAlgo;
+    EventLogPtr += sizeof(TCG_DEVICE_SECURITY_EVENT_DATA_SUB_HEADER_SPDM_MEASUREMENT_BLOCK);
+
+    CopyMem (EventLogPtr, MeasurementRecord, MeasurementRecordLength);
+    EventLogPtr += MeasurementRecordLength;
+#endif
+
+    if (DeviceContextSize != 0) {
+      DeviceContext = (VOID *)EventLogPtr;
+      Status = CreateDeviceMeasurementContext (SpdmDeviceContext, DeviceContext, DeviceContextSize);
+      if (Status != EFI_SUCCESS) {
+        return EFI_DEVICE_ERROR;
+      }
+    }
+
+    Status = TpmMeasureAndLogData (
+               TCG_NV_EXTEND_INDEX_FOR_INSTANCE,
+               EV_NO_ACTION,
+               EventLog,
+               EventLogSize,
+               EventLog,
+               EventLogSize
+               );
+    DEBUG((DEBUG_INFO, "TpmMeasureAndLogData (Measurement) - %r\n", Status));
+    break;
+  case TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_AUTH_STATE_FAIL_INVALID:
+#if (TCG_DEVICE_SECURITY_EVENT_DATA_VERSION_SELECTION == TCG_DEVICE_SECURITY_EVENT_DATA_VERSION_1)
+    EventLogSize = (UINT32)(sizeof(TCG_DEVICE_SECURITY_EVENT_DATA_HEADER) +
+                            sizeof(UINT64) + DevicePathSize +
+                            DeviceContextSize);
+#else
+    EventLogSize = (UINT32)(sizeof(TCG_DEVICE_SECURITY_EVENT_DATA_HEADER2) +
+                            sizeof(UINT64) + DevicePathSize +
+                            DeviceContextSize);
+  #endif
+    EventLog = AllocatePool (EventLogSize);
+    if (EventLog == NULL) {
+      return EFI_OUT_OF_RESOURCES;
+    }
+    EventLogPtr = EventLog;
+
+#if (TCG_DEVICE_SECURITY_EVENT_DATA_VERSION_SELECTION == TCG_DEVICE_SECURITY_EVENT_DATA_VERSION_1)
+    EventData = (VOID *)EventLogPtr;
+    CopyMem (EventData->Signature, TCG_DEVICE_SECURITY_EVENT_DATA_SIGNATURE, sizeof(EventData->Signature));
+    EventData->Version                  = TCG_DEVICE_SECURITY_EVENT_DATA_VERSION_1;
+    EventData->Length                   = (UINT16)EventLogSize;
+    EventData->SpdmHashAlgo             = MeasurementHashAlgo;
+    EventData->DeviceType               = GetSpdmDeviceType (SpdmDeviceContext);
+
+    EventLogPtr = (VOID *)(EventData + 1);
+
+    *(UINT64 *)EventLogPtr = (UINT64)DevicePathSize;
+    EventLogPtr += sizeof(UINT64);
+    CopyMem (EventLogPtr, SpdmDeviceContext->DevicePath, DevicePathSize);
+    EventLogPtr += DevicePathSize;
+#else
+    EventData2 = (VOID *)EventLogPtr;
+    CopyMem (EventData2->Signature, TCG_DEVICE_SECURITY_EVENT_DATA_SIGNATURE_2, sizeof(EventData2->Signature));
+    EventData2->Version                  = TCG_DEVICE_SECURITY_EVENT_DATA_VERSION_2;
+    EventData2->AuthState                = AuthState;
+    EventData2->Reserved                 = 0;
+    EventData2->Length                   = (UINT32)EventLogSize;
+    EventData2->DeviceType               = GetSpdmDeviceType (SpdmDeviceContext);
+
+    EventData2->SubHeaderType            = TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_SUB_HEADER_TYPE_SPDM_MEASUREMENT_BLOCK;
+    EventData2->SubHeaderLength          = 0;
+    EventData2->SubHeaderUID             = SpdmDeviceContext->DeviceUID;
+
+    EventLogPtr = (VOID *)(EventData2 + 1);
+
+    *(UINT64 *)EventLogPtr = (UINT64)DevicePathSize;
+    EventLogPtr += sizeof(UINT64);
+    CopyMem (EventLogPtr, SpdmDeviceContext->DevicePath, DevicePathSize);
+    EventLogPtr += DevicePathSize;
+
+    TcgSpdmMeasurementBlock = (VOID *)EventLogPtr;
+    TcgSpdmMeasurementBlock->SpdmVersion = SpdmDeviceContext->SpdmVersion;
+    TcgSpdmMeasurementBlock->SpdmMeasurementHashAlgo = MeasurementHashAlgo;
+#endif
+
+    if (DeviceContextSize != 0) {
+      DeviceContext = (VOID *)EventLogPtr;
+      Status = CreateDeviceMeasurementContext (SpdmDeviceContext, DeviceContext, DeviceContextSize);
+      if (Status != EFI_SUCCESS) {
+        return EFI_DEVICE_ERROR;
+      }
+    }
+
+    Status = TpmMeasureAndLogData (
+               TCG_NV_EXTEND_INDEX_FOR_INSTANCE,
+               EV_NO_ACTION,
+               EventLog,
+               EventLogSize,
+               EventLog,
+               EventLogSize
+               );
+    DEBUG((DEBUG_INFO, "TpmMeasureAndLogData (Measurement) - %r\n", Status));
+    return Status;
+  default:
+    return EFI_UNSUPPORTED;
+  }
 
 #if (TCG_DEVICE_SECURITY_EVENT_DATA_VERSION_SELECTION > TCG_DEVICE_SECURITY_EVENT_DATA_VERSION_1)
   {
@@ -393,6 +477,7 @@ DoDeviceMeasurement (
   SPDM_MEASUREMENT_BLOCK_DMTF   *MeasurementBlock;
   UINT8                         NumberOfBlock;
   UINT8                         ReceivedNumberOfBlock;
+  UINT8                         AuthState;
 
   SpdmContext = SpdmDeviceContext->SpdmContext;
 
@@ -402,6 +487,8 @@ DoDeviceMeasurement (
   SpdmGetData (SpdmContext, SpdmDataCapabilityFlags, &Parameter, &CapabilityFlags, &DataSize);
 
   if ((CapabilityFlags & SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_MEAS_CAP) == 0) {
+    AuthState = TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_AUTH_STATE_FAIL_NO_SIG;
+    Status = ExtendMeasurement (SpdmDeviceContext, AuthState, 0, NULL, NULL, NULL);
     return EFI_UNSUPPORTED;
   }
 
@@ -437,12 +524,16 @@ DoDeviceMeasurement (
           ->measurement_block_dmtf_header
           .dmtf_spec_measurement_value_size;
 
-      Status = ExtendMeasurement (SpdmDeviceContext, MeasurementsBlockSize, (UINT8 *)MeasurementBlock, RequesterNonce, ResponderNonce);
+      AuthState = TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_AUTH_STATE_SUCCESS;
+      Status = ExtendMeasurement (SpdmDeviceContext, AuthState, MeasurementsBlockSize, (UINT8 *)MeasurementBlock, RequesterNonce, ResponderNonce);
       MeasurementBlock = (VOID *) ((size_t)MeasurementBlock + MeasurementsBlockSize);
       if (Status != EFI_SUCCESS) {
 	    return Status;
       }
     }
+  } else if (Status == LIBSPDM_STATUS_VERIF_FAIL) {
+    AuthState = TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_AUTH_STATE_FAIL_INVALID;
+    Status = ExtendMeasurement (SpdmDeviceContext, AuthState, 0, NULL, NULL, NULL);
   } else {
     RequestAttribute = 0;
     //
@@ -502,10 +593,15 @@ DoDeviceMeasurement (
                 );
       if (EFI_ERROR(Status)) {
         continue;
+      } else if (Status == LIBSPDM_STATUS_VERIF_FAIL) {
+        AuthState = TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_AUTH_STATE_FAIL_INVALID;
+        Status = ExtendMeasurement (SpdmDeviceContext, AuthState, 0, NULL, NULL, NULL);;
+        continue;
       }
       ReceivedNumberOfBlock += 1;
       DEBUG((DEBUG_INFO, "ExtendMeasurement...\n"));
-      Status = ExtendMeasurement (SpdmDeviceContext, MeasurementRecordLength, MeasurementRecord, RequesterNonce, ResponderNonce);
+      AuthState = TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_AUTH_STATE_SUCCESS;
+      Status = ExtendMeasurement (SpdmDeviceContext, AuthState, MeasurementRecordLength, MeasurementRecord, RequesterNonce, ResponderNonce);
       if (Status != EFI_SUCCESS) {
         return Status;
       }
@@ -522,7 +618,8 @@ DoDeviceMeasurement (
                                       0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; // SVN
     RandomBytes (RequesterNonce, 32);
     RandomBytes (ResponderNonce, 32);
-    ExtendMeasurement (SpdmDeviceContext, sizeof(SvnMeasurementRecord), SvnMeasurementRecord, RequesterNonce, ResponderNonce);
+    AuthState = TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_AUTH_STATE_SUCCESS;
+    ExtendMeasurement (SpdmDeviceContext, AuthState, sizeof(SvnMeasurementRecord), SvnMeasurementRecord, RequesterNonce, ResponderNonce);
   }
 
   return EFI_SUCCESS;
