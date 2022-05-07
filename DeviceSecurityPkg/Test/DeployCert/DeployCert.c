@@ -161,7 +161,8 @@ CreateNvIndex (
   PublicInfo.nvPublic.authPolicy.size = 0;
   PublicInfo.nvPublic.dataSize = DataSize;
   PublicInfo.nvPublic.attributes.TPMA_NV_OWNERWRITE = 1;
-  PublicInfo.nvPublic.attributes.TPMA_NV_OWNERREAD =1;
+  PublicInfo.nvPublic.attributes.TPMA_NV_OWNERREAD = 1;
+  PublicInfo.nvPublic.attributes.TPMA_NV_CLEAR_STCLEAR = 1;
   PublicInfo.nvPublic.attributes.TPMA_NV_EXTEND = 1;
 
   AuthHandle = TPM_RH_OWNER;
