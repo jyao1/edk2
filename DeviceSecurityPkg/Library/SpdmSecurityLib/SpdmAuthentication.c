@@ -452,7 +452,6 @@ DoDeviceAuthentication (
   DataSize = sizeof(CapabilityFlags);
   SpdmGetData (SpdmContext, SpdmDataCapabilityFlags, &Parameter, &CapabilityFlags, &DataSize);
 
-  Status = EFI_UNSUPPORTED;
   IsValidCertChain = FALSE;
   IsValidChanllegeAuthSig = FALSE;
   IsValidChanllegeAuthSig = FALSE;
@@ -460,7 +459,7 @@ DoDeviceAuthentication (
   if ((CapabilityFlags & SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_CERT_CAP) == 0) {
     AuthState = TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_AUTH_STATE_FAIL_NO_SIG;
     ExtendCertificate (SpdmDeviceContext, AuthState, 0, NULL, NULL, 0);
-    return Status;
+    return EFI_UNSUPPORTED;
   }
 
   if ((CapabilityFlags & SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_CERT_CAP) != 0) {
@@ -492,6 +491,7 @@ DoDeviceAuthentication (
   if ((CapabilityFlags & SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_CHAL_CAP) == 0) {
     AuthState = TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_AUTH_STATE_FAIL_NO_BINDING;
     ExtendCertificate (SpdmDeviceContext, AuthState, CertChainSize, CertChain, TrustAnchor, TrustAnchorSize);
+    return EFI_UNSUPPORTED;
   }
   if ((CapabilityFlags & SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_CHAL_CAP) != 0) {
     ZeroMem (MeasurementHash, sizeof(MeasurementHash));

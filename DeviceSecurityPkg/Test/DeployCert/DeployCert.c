@@ -25,6 +25,7 @@
 #include <Library/Tpm2CommandLib.h>
 #include <Library/ShellLib.h>
 #include <Library/UefiLib.h>
+#include <Test/TestConfig.h>
 
 #define SHA256_HASH_SIZE  32
 
@@ -42,6 +43,7 @@ extern UINTN EccTestRootKeySize;
 
 SHELL_PARAM_ITEM mParamList[] = {
   {L"-P",   TypeFlag},
+  {L"-T",   TypeValue},
   {NULL,    TypeMax},
   };
 
@@ -262,15 +264,51 @@ MainEntryPoint (
   UINT8               *RootCert;
   UINTN               RootCertLen;
   LIST_ENTRY          *ParamPackage;
+  CHAR16              *TestConfigName;
+  UINT8               TestConfig;
+
+  Status = ShellCommandLineParse (mParamList, &ParamPackage, NULL, TRUE);
+  if (EFI_ERROR(Status)) {
+    Print(L"ERROR: Incorrect command line.\n");
+    return Status;
+  }
+
+  if (ShellCommandLineGetFlag (ParamPackage, L"-P")) {
+    Status = ProvisionNvIndex ();
+    Print(L"ProvisionNvIndex - Status %r\n", Status);
+  }
+
+  TestConfigName = (CHAR16 *)ShellCommandLineGetValue(ParamPackage, L"-T");
+  if (TestConfigName == NULL) {
+    TestConfig = 0;
+  } else {
+    TestConfig = (UINT8)StrDecimalToUintn (TestConfigName);
+  }
+
+  Print(L"TestConfig - %d\n", TestConfig);
+
+  Status = gRT->SetVariable (
+                  L"SpdmTestConfig",
+                  &gEfiDeviceSecurityPkgTestConfig,
+                  EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS,
+                  sizeof (UINT8),
+                  &TestConfig
+                  );
 
   CertChainSize = sizeof(SPDM_CERT_CHAIN) + SHA256_HASH_SIZE + TestRootCerSize;
   CertChain = AllocateZeroPool (CertChainSize);
   ASSERT (CertChain != NULL);
   CertChain->length = (UINT16)CertChainSize;
   CertChain->reserved = 0;
-  Res = X509GetCertFromCertChain(TestRootCer, TestRootCerSize, 0, &RootCert,
-                                 &RootCertLen);
-  Sha256HashAll (RootCert, RootCertLen, (VOID *)(CertChain + 1));
+  if (TestConfig != TEST_CONFIG_INVALID_CERT_CHAIN) {
+    Res = X509GetCertFromCertChain(TestRootCer, TestRootCerSize, 0, &RootCert,
+                                   &RootCertLen);
+    if (!Res) {
+      Print(L"fail to get root cert\n");
+      return EFI_DEVICE_ERROR;
+    }
+    Sha256HashAll (RootCert, RootCertLen, (VOID *)(CertChain + 1));
+  }
   CopyMem (
     (UINT8 *)CertChain + sizeof(SPDM_CERT_CHAIN) + SHA256_HASH_SIZE,
     TestRootCer,
@@ -347,17 +385,6 @@ MainEntryPoint (
                   TestRootKey
                   );
   ASSERT_EFI_ERROR(Status);
-
-  Status = ShellCommandLineParse (mParamList, &ParamPackage, NULL, TRUE);
-  if (EFI_ERROR(Status)) {
-    Print(L"ERROR: Incorrect command line.\n");
-    return Status;
-  }
-
-  if (ShellCommandLineGetFlag (ParamPackage, L"-P")) {
-    Status = ProvisionNvIndex ();
-    DEBUG((DEBUG_ERROR, "ProvisionNvIndex - Status %r\n", Status));
-  }
 
   return EFI_SUCCESS;
 }

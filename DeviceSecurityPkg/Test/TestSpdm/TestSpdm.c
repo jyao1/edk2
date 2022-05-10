@@ -282,12 +282,18 @@ TestSpdm (
                            &HeartbeatPeriod,
                            MeasurementHash
                            );
-  ASSERT_EFI_ERROR(Status);
+  if (EFI_ERROR(Status)) {
+    DEBUG ((DEBUG_ERROR, "StartSession - %r\n", Status));
+    return;
+  }
 
   TestSpdmApplication (SpdmProtocol, SpdmTestProtocol, SessionId);
   
   Status = SpdmProtocol->StopSession (SpdmProtocol, SessionId, 0);
-  ASSERT_EFI_ERROR(Status);
+  if (EFI_ERROR(Status)) {
+    DEBUG ((DEBUG_ERROR, "StopSession - %r\n", Status));
+    return;
+  }
 }
 
 EFI_STATUS

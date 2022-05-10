@@ -18,6 +18,8 @@ SPDX-License-Identifier: BSD-2-Clause-Patent
 #include <Library/UefiLib.h>
 #include <Guid/DeviceAuthentication.h>
 #include <Guid/ImageAuthentication.h>
+#include <Library/UefiRuntimeServicesTableLib.h>
+#include <Test/TestConfig.h>
 
 #define LIBSPDM_MEASUREMENT_BLOCK_HASH_NUMBER 4
 #define LIBSPDM_MEASUREMENT_BLOCK_NUMBER (LIBSPDM_MEASUREMENT_BLOCK_HASH_NUMBER /*Index - 1~4*/ + \
@@ -651,7 +653,9 @@ SpdmResponderDataSignFunc (
   VOID                          *PrivatePem;
   UINTN                         PrivatePemSize;
   BOOLEAN                       Result;
-  
+  UINT8                         TestConfig;
+  UINTN                         TestConfigSize;
+
   Status = GetVariable2 (
              L"PrivDevKey",
              &gEdkiiDeviceSignatureDatabaseGuid,
@@ -661,6 +665,14 @@ SpdmResponderDataSignFunc (
   if (EFI_ERROR(Status)) {
     return FALSE;
   }
+
+  Status = gRT->GetVariable (
+                  L"SpdmTestConfig",
+                  &gEfiDeviceSecurityPkgTestConfig,
+                  NULL,
+                  &TestConfigSize,
+                  &TestConfig
+                  );
 
   Result = SpdmAsymGetPrivateKeyFromPem (BaseAsymAlgo, PrivatePem, PrivatePemSize, NULL, &Context);
   if (!Result) {
@@ -691,6 +703,14 @@ SpdmResponderDataSignFunc (
                SigSize
                );
   }
+
+  if (((OpCode == SPDM_CHALLENGE_AUTH)
+       && (TestConfig == TEST_CONFIG_INVALID_CHALLENGE_AUTH_SIGNATURE))
+      || ((OpCode == SPDM_MEASUREMENTS)
+          && (TestConfig == TEST_CONFIG_INVALID_MEASUREMENT_SIGNATURE))) {
+    *Signature = 0;
+  }
+
   SpdmAsymFree (BaseAsymAlgo, Context);
   FreePool (PrivatePem);
 

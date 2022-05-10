@@ -7,6 +7,8 @@
 **/
 
 #include "SpdmStub.h"
+#include <Library/UefiRuntimeServicesTableLib.h>
+#include <Test/TestConfig.h>
 
 #define SLOT_NUMBER    2
 
@@ -171,6 +173,16 @@ MainEntryPoint (
   BOOLEAN                           HasRspPubCert;
   BOOLEAN                           HasRspPrivKey;
   UINTN                             ScratchBufferSize;
+  UINT8                             TestConfig;
+  UINTN                             TestConfigSize;
+
+  Status = gRT->GetVariable (
+                  L"SpdmTestConfig",
+                  &gEfiDeviceSecurityPkgTestConfig,
+                  NULL,
+                  &TestConfigSize,
+                  &TestConfig
+                  );
 
   SpdmContext = AllocateZeroPool (SpdmGetContextSize());
   ASSERT(SpdmContext != NULL);
@@ -253,6 +265,12 @@ MainEntryPoint (
     Data32 |= SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_CHAL_CAP;
     Data32 |= SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_MEAS_CAP_SIG;
     Data32 &= ~SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_MEAS_CAP_NO_SIG;
+  }
+
+  if (TestConfig == TEST_CONFIG_NO_CERT_CAP) {
+    Data32 &= ~SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_CERT_CAP;
+  } else if (TestConfig == TEST_CONFIG_NO_CHAL_CAP) {
+    Data32 &= ~SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_CHAL_CAP;
   }
   SpdmSetData (SpdmContext, SpdmDataCapabilityFlags, &Parameter, &Data32, sizeof(Data32));
 

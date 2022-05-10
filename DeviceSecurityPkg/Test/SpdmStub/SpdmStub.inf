@@ -46,6 +46,7 @@
 [Guids]
   gEdkiiDeviceSignatureDatabaseGuid  ## CONSUMES
   gEdkiiCertSpdmCertChainGuid        ## CONSUMES
+  gEfiDeviceSecurityPkgTestConfig    ## CONSUMES
 
 [Protocols]
   gSpdmIoProtocolGuid   ## PRODUCES

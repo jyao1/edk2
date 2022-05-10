@@ -533,7 +533,8 @@ DoDeviceMeasurement (
     }
   } else if (Status == LIBSPDM_STATUS_VERIF_FAIL) {
     AuthState = TCG_DEVICE_SECURITY_EVENT_DATA_DEVICE_AUTH_STATE_FAIL_INVALID;
-    Status = ExtendMeasurement (SpdmDeviceContext, AuthState, 0, NULL, NULL, NULL);
+    ExtendMeasurement (SpdmDeviceContext, AuthState, 0, NULL, NULL, NULL);
+    return Status;
   } else {
     RequestAttribute = 0;
     //
