@@ -14,5 +14,7 @@
 #define TEST_CONFIG_INVALID_CERT_CHAIN                      3
 #define TEST_CONFIG_INVALID_CHALLENGE_AUTH_SIGNATURE        4
 #define TEST_CONFIG_INVALID_MEASUREMENT_SIGNATURE           5
+#define TEST_CONFIG_MEAS_CAP_NO_SIG                         6
+#define TEST_CONFIG_NO_MEAS_CAP                             7
 
 #endif

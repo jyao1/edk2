@@ -35,6 +35,12 @@ extern UINTN TestRootCerSize;
 extern UINT8 TestRootKey[];
 extern UINTN TestRootKeySize;
 
+extern UINT8 TestRootCer2[];
+extern UINTN TestRootCer2Size;
+
+extern UINT8 TestRootKey2[];
+extern UINTN TestRootKey2Size;
+
 extern UINT8 EccTestRootCer[];
 extern UINTN EccTestRootCerSize;
 
