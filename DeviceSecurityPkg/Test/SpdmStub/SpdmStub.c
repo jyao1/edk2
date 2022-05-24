@@ -163,8 +163,6 @@ MainEntryPoint (
   UINT8                             Index;
   VOID                              *CertChain;
   UINTN                             CertChainSize;
-  EFI_SIGNATURE_LIST                *SignatureList;
-  UINTN                             SignatureListSize;
   VOID                              *SpdmContext;
   SPDM_DATA_PARAMETER               Parameter;
   UINT8                             Data8;
@@ -202,23 +200,14 @@ MainEntryPoint (
   SpdmSetScratchBuffer (SpdmContext, mScratchBuffer, ScratchBufferSize);
 
   Status = GetVariable2 (
-             EDKII_DEVICE_SECURITY_DATABASE,
-             &gEdkiiDeviceSignatureDatabaseGuid,
-             &SignatureList,
-             &SignatureListSize
-             );
+              L"ProvisionSpdmCertChain",
+              &gEfiDeviceSecurityPkgTestConfig,
+              &CertChain,
+              &CertChainSize
+              );
   if (!EFI_ERROR(Status)) {
     HasRspPubCert = TRUE;
     // BUGBUG: Assume only 1 SPDM cert.
-    ASSERT (CompareGuid (&SignatureList->SignatureType, &gEdkiiCertSpdmCertChainGuid));
-    ASSERT (SignatureList->SignatureListSize == SignatureList->SignatureListSize);
-    ASSERT (SignatureList->SignatureHeaderSize == 0);
-    ASSERT (SignatureList->SignatureSize == SignatureList->SignatureListSize - (sizeof(EFI_SIGNATURE_LIST) + SignatureList->SignatureHeaderSize));
-    CertChain = (VOID *)((UINT8 *)SignatureList +
-                         sizeof(EFI_SIGNATURE_LIST) +
-                         SignatureList->SignatureHeaderSize +
-                         sizeof(EFI_GUID));
-    CertChainSize = SignatureList->SignatureSize - sizeof(EFI_GUID);
 
     ZeroMem (&Parameter, sizeof(Parameter));
     Parameter.location = SpdmDataLocationLocal;
@@ -271,10 +260,10 @@ MainEntryPoint (
     Data32 &= ~SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_CERT_CAP;
   } else if (TestConfig == TEST_CONFIG_NO_CHAL_CAP) {
     Data32 &= ~SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_CHAL_CAP;
-  } else if (TestConfig == TEST_CONFIG_MEAS_WITHOUT_SIG_CAP) {
+  } else if (TestConfig == TEST_CONFIG_MEAS_CAP_NO_SIG) {
     Data32 &= ~SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_MEAS_CAP_SIG;
     Data32 |= SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_MEAS_CAP_NO_SIG;
-  } else if (TestConfig == TEST_CONFIG_NO_ANY_MEAS_CAP) {
+  } else if (TestConfig == TEST_CONFIG_NO_MEAS_CAP) {
     Data32 &= ~SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_MEAS_CAP_SIG;
     Data32 &= ~SPDM_GET_CAPABILITIES_RESPONSE_FLAGS_MEAS_CAP_NO_SIG;
   }
